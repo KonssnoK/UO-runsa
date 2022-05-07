@@ -44,12 +44,44 @@ namespace Server.Gumps
 		private bool m_Closable = true;
 		private bool m_Resizable = true;
 		private bool m_Disposable = true;
+		//KR Gump Support
 
-		public static int GetTypeID( Type type )
+		private static Dictionary<Type,int> _typeIdTable = new Dictionary<Type,int>();
+
+		public List<string> Strings
 		{
-			return type.FullName.GetHashCode();
+			get
+			{
+				return m_Strings;
+			}
+			set
+			{
+					m_Strings = value;
+					Invalidate();
+			}
 		}
-
+		public static void RegisterType(Type t, int id)
+		{
+    			if (!_typeIdTable.ContainsKey(t))
+        			_typeIdTable.Add(t, id);
+    			else
+        			_typeIdTable[t] = id;
+		}
+		public virtual void OverrideStringTable()
+		{
+		} 
+		public virtual int GetTypeID( Type type )
+		{
+        		if (_typeIdTable.ContainsKey(type))
+            			return _typeIdTable[type];
+        		else
+        		{
+           			int hash = type.FullName.GetHashCode();
+            			_typeIdTable.Add(type, hash);
+            			return hash;
+        		}
+		} 
+		//KR End
 		public Gump( int x, int y )
 		{
 			do
@@ -60,7 +92,8 @@ namespace Server.Gumps
 			m_X = x;
 			m_Y = y;
 
-			m_TypeID = GetTypeID( this.GetType() );
+			if(m_TypeID == 0 )
+				m_TypeID = GetTypeID( this.GetType() );
 
 			m_Entries = new List<GumpEntry>();
 			m_Strings = new List<string>();
@@ -77,6 +110,14 @@ namespace Server.Gumps
 			get
 			{
 				return m_TypeID;
+			}
+			set
+			{
+				if ( m_TypeID != value && value > 0)
+				{
+					m_TypeID = value;
+					Invalidate();
+				}
 			}
 		}
 
@@ -196,10 +237,18 @@ namespace Server.Gumps
 				}
 			}
 		}
-
 		public void AddPage( int page )
 		{
 			Add( new GumpPage( page ) );
+		}
+		public void AddKRPage( int page )
+		{
+			Add( new KRGumpPage( page ) );
+		}
+
+		public void NotClosable()
+		{
+			Add( new GumpNotClosable() );
 		}
 
 		public void AddAlphaRegion( int x, int y, int width, int height )
@@ -210,6 +259,14 @@ namespace Server.Gumps
 		public void AddBackground( int x, int y, int width, int height, int gumpID )
 		{
 			Add( new GumpBackground( x, y, width, height, gumpID ) );
+		}
+		public void AddKRButton( int buttonID )
+		{
+			Add( new KRGumpButton( 0, 0, 0, 0, buttonID, GumpButtonType.Page, 0 ) );
+		}
+		public void AddKRButton( int x, int y, int normalID, int pressedID, int buttonID, GumpButtonType type, int param )
+		{
+			Add( new KRGumpButton( x, y, normalID, pressedID, buttonID, type, param ) );
 		}
 
 		public void AddButton( int x, int y, int normalID, int pressedID, int buttonID, GumpButtonType type, int param )
@@ -251,7 +308,43 @@ namespace Server.Gumps
 		{
 			Add( new GumpHtmlLocalized( x, y, width, height, number, args, color, background, scrollbar ) );
 		}
+		public void AddKRHtmlLocalized( int number )
+		{
+			Add( new KRGumpHtmlLocalized( 0, 0, 0, 0, number, false, false ) );
+		}
+		public void AddKRHtmlLocalized( int x, int y, int width, int height, int number, bool background, bool scrollbar )
+		{
+			Add( new KRGumpHtmlLocalized( x, y, width, height, number, background, scrollbar ) );
+		}
 
+		public void AddKRHtmlLocalized( int x, int y, int width, int height, int number, int color, bool background, bool scrollbar )
+		{
+			Add( new KRGumpHtmlLocalized( x, y, width, height, number, color, background, scrollbar ) );
+		}
+
+		public void AddKRHtmlLocalized( int x, int y, int width, int height, int number, string args, int color, bool background, bool scrollbar )
+		{
+			Add( new KRGumpHtmlLocalized( x, y, width, height, number, args, color, background, scrollbar ) );
+		}
+
+		public void AddKRImage( int gumpID )
+		{
+			Add( new KRGumpImage( 0, 0, gumpID ) );
+		}
+
+		public void AddKRImage(  int gumpID, int hue )
+		{
+			Add( new KRGumpImage( 0, 0, gumpID, hue ) );
+		}
+		public void AddKRImage( int x, int y, int gumpID )
+		{
+			Add( new KRGumpImage( x, y, gumpID ) );
+		}
+
+		public void AddKRImage( int x, int y, int gumpID, int hue )
+		{
+			Add( new KRGumpImage( x, y, gumpID, hue ) );
+		}
 		public void AddImage( int x, int y, int gumpID )
 		{
 			Add( new GumpImage( x, y, gumpID ) );
@@ -276,6 +369,20 @@ namespace Server.Gumps
 			Add( new GumpImageTileButton( x, y, normalID, pressedID, buttonID, type, param, itemID, hue, width, height, localizedTooltip ) );
 		}
 
+		public void AddKRItem( int itemID )
+		{
+			Add( new KRGumpItem( 0, 0, itemID ) );
+		}
+
+		public void AddKRItem( int x, int y, int itemID )
+		{
+			Add( new KRGumpItem( x, y, itemID ) );
+		}
+
+		public void AddKRItem( int x, int y, int itemID, int hue )
+		{
+			Add( new KRGumpItem( x, y, itemID, hue ) );
+		}
 		public void AddItem( int x, int y, int itemID )
 		{
 			Add( new GumpItem( x, y, itemID ) );
@@ -290,6 +397,14 @@ namespace Server.Gumps
 		{
 			Add( new GumpLabel( x, y, hue, text ) );
 		}
+		public void AddKRLabel( string text )
+		{
+			Add( new KRGumpLabel( 0, 0, 0, text ) );
+		}
+		public void AddKRLabel( int x, int y, int hue, string text )
+		{
+			Add( new KRGumpLabel( x, y, hue, text ) );
+		}
 
 		public void AddLabelCropped( int x, int y, int width, int height, int hue, string text )
 		{
@@ -303,17 +418,26 @@ namespace Server.Gumps
 
 		public void AddTextEntry( int x, int y, int width, int height, int hue, int entryID, string initialText )
 		{
-			Add( new GumpTextEntry( x, y, width, height, hue, entryID, initialText ) );
+			#region SA
+			Add(new GumpLabel(x, y, hue, initialText));
+			Add(new GumpTextEntry(x + (6 * ((initialText != null) ? initialText.Length : 0)), y, width, height, hue, entryID, initialText));
+			#endregion
 		}
 
 		public void AddTextEntry( int x, int y, int width, int height, int hue, int entryID, string initialText, int size ) {
 			Add( new GumpTextEntryLimited( x, y, width, height, hue, entryID, initialText, size ) );
 		}
 
-		public void AddItemProperty( int serial )
-		{
-			Add( new GumpItemProperty( serial ) );
-		}
+		#region SA
+		public void AddItemProperty(int serial)
+        {
+            Add(new ItemProperty(serial));
+        }
+		public void AddItemProperty(Serial serial)
+        {
+            Add(new ItemProperty((int)serial));
+        }
+		#endregion
 
 		public void Add( GumpEntry g )
 		{
@@ -330,14 +454,12 @@ namespace Server.Gumps
 
 		public void Remove( GumpEntry g )
 		{
-			if (g == null || !m_Entries.Contains(g))
-				return;
-
 			Invalidate();
 			m_Entries.Remove( g );
 			g.Parent = null;
 		}
-
+		
+		/* Remove For KR sting
 		public int Intern( string value )
 		{
 			int indexOf = m_Strings.IndexOf( value );
@@ -353,6 +475,34 @@ namespace Server.Gumps
 				return m_Strings.Count - 1;
 			}
 		}
+		*/
+        	//public int Intern(string true)
+        	public int Intern(string value)
+        	{
+            		return Intern(value, false);
+        	}
+
+      		public int Intern( string value, bool enforceUnique )
+      		{
+            		if (enforceUnique)
+            		{
+               			int indexOf = m_Strings.IndexOf(value);
+
+                		if (indexOf >= 0)
+                		{
+                    			return indexOf;
+                		}
+            		}
+
+            		Invalidate();
+            		m_Strings.Add(value);
+            		return m_Strings.Count - 1;
+      		} 
+      		public int UnIntern()
+      		{
+			m_Strings.Clear();
+            		return 0;
+      		} 
 
 		public void SendTo( NetState state )
 		{
@@ -373,16 +523,18 @@ namespace Server.Gumps
 		private static byte[] m_NoDispose = StringToBuffer( "{ nodispose }" );
 		private static byte[] m_NoResize = StringToBuffer( "{ noresize }" );
 
-		private Packet Compile()
+		public static readonly ClientVersion UnpackVersion = new ClientVersion( "5.0.0a" );
+
+		/*private Packet Compile()
 		{
 			return Compile( null );
-		}
+		}*/
 
 		private Packet Compile( NetState ns )
 		{
 			IGumpWriter disp;
 
-			if ( ns != null && ns.Unpack )
+			if (( ns != null && ns.Version != null && ns.Version >= UnpackVersion )|| ns.IsKRClient)
 				disp = new DisplayGumpPacked( this );
 			else
 				disp = new DisplayGumpFast( this );
@@ -410,7 +562,7 @@ namespace Server.Gumps
 				e.AppendTo( disp );
 				disp.AppendLayout( m_EndLayout );
 			}
-
+			OverrideStringTable();
 			disp.WriteStrings( m_Strings );
 
 			disp.Flush();

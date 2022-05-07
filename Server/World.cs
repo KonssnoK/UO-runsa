@@ -33,15 +33,19 @@ using Server.Guilds;
 
 namespace Server {
 	public static class World {
+		public enum SaveOption {
+			Normal,
+			Threaded
+		}
+
+		public static SaveOption SaveType = SaveOption.Normal;
 
 		private static Dictionary<Serial, Mobile> m_Mobiles;
 		private static Dictionary<Serial, Item> m_Items;
 
 		private static bool m_Loading;
 		private static bool m_Loaded;
-
 		private static bool m_Saving;
-		private static ManualResetEvent m_DiskWriteHandle = new ManualResetEvent(true);
 
 		private static Queue<IEntity> _addQueue, _deleteQueue;
 
@@ -59,19 +63,6 @@ namespace Server {
 
 		public readonly static string GuildIndexPath = Path.Combine( "Saves/Guilds/", "Guilds.idx" );
 		public readonly static string GuildDataPath = Path.Combine( "Saves/Guilds/", "Guilds.bin" );
-
-		public static void NotifyDiskWriteComplete()
-		{
-			if( m_DiskWriteHandle.Set())
-			{
-				Console.WriteLine("Closing Save Files. ");
-			}
-		}
-
-		public static void WaitForWriteCompletion()
-		{
-			m_DiskWriteHandle.WaitOne();
-		}
 
 		public static Dictionary<Serial, Mobile> Mobiles {
 			get { return m_Mobiles; }
@@ -280,60 +271,6 @@ namespace Server {
 			get { return m_LoadingType; }
 		}
 
-		private static readonly Type[] m_SerialTypeArray = new Type[1] { typeof(Serial) };
-
-		private static List<Tuple<ConstructorInfo, string>> ReadTypes( BinaryReader tdbReader )
-		{
-			int count = tdbReader.ReadInt32();
-
-			List<Tuple<ConstructorInfo, string>> types = new List<Tuple<ConstructorInfo, string>>( count );
-
-			for (int i = 0; i < count; ++i)
-			{
-				string typeName = tdbReader.ReadString();
-
-				Type t = ScriptCompiler.FindTypeByFullName(typeName);
-
-				if (t == null)
-				{
-					Console.WriteLine("failed");
-
-					if (!Core.Service)
-					{
-						Console.WriteLine("Error: Type '{0}' was not found. Delete all of those types? (y/n)", typeName);
-
-						if (Console.ReadKey(true).Key == ConsoleKey.Y)
-						{
-							types.Add(null);
-							Console.Write("World: Loading...");
-							continue;
-						}
-
-						Console.WriteLine("Types will not be deleted. An exception will be thrown.");
-					}
-					else
-					{
-						Console.WriteLine("Error: Type '{0}' was not found.", typeName);
-					}
-
-					throw new Exception(String.Format("Bad type '{0}'", typeName));
-				}
-
-				ConstructorInfo ctor = t.GetConstructor(m_SerialTypeArray);
-
-				if (ctor != null)
-				{
-					types.Add( new Tuple<ConstructorInfo, string>( ctor, typeName ) );
-				}
-				else
-				{
-					throw new Exception(String.Format("Type '{0}' does not have a serialization constructor", t));
-				}
-			}
-
-			return types;
-		}
-
 		public static void Load() {
 			if ( m_Loaded )
 				return;
@@ -353,6 +290,7 @@ namespace Server {
 			int mobileCount = 0, itemCount = 0, guildCount = 0;
 
 			object[] ctorArgs = new object[1];
+			Type[] ctorTypes = new Type[1] { typeof( Serial ) };
 
 			List<ItemEntry> items = new List<ItemEntry>();
 			List<MobileEntry> mobiles = new List<MobileEntry>();
@@ -365,7 +303,43 @@ namespace Server {
 					using ( FileStream tdb = new FileStream( MobileTypesPath, FileMode.Open, FileAccess.Read, FileShare.Read ) ) {
 						BinaryReader tdbReader = new BinaryReader( tdb );
 
-						List<Tuple<ConstructorInfo, string>> types = ReadTypes( tdbReader );
+						int count = tdbReader.ReadInt32();
+
+						ArrayList types = new ArrayList( count );
+
+						for ( int i = 0; i < count; ++i ) {
+							string typeName = tdbReader.ReadString();
+
+							Type t = ScriptCompiler.FindTypeByFullName( typeName );
+
+							if ( t == null ) {
+								Console.WriteLine( "failed" );
+								
+								if ( !Core.Service ) {
+								Console.WriteLine( "Error: Type '{0}' was not found. Delete all of those types? (y/n)", typeName );
+
+								if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
+									types.Add( null );
+									Console.Write( "World: Loading..." );
+									continue;
+								}
+
+									Console.WriteLine( "Types will not be deleted. An exception will be thrown." );
+								} else {
+									Console.WriteLine( "Error: Type '{0}' was not found.", typeName );
+								}
+
+								throw new Exception( String.Format( "Bad type '{0}'", typeName ) );
+							}
+
+							ConstructorInfo ctor = t.GetConstructor( ctorTypes );
+
+							if ( ctor != null ) {
+								types.Add( new object[] { ctor, null } );
+							} else {
+								throw new Exception( String.Format( "Type '{0}' does not have a serialization constructor", t ) );
+							}
+						}
 
 						mobileCount = idxReader.ReadInt32();
 
@@ -377,14 +351,14 @@ namespace Server {
 							long pos = idxReader.ReadInt64();
 							int length = idxReader.ReadInt32();
 
-							Tuple<ConstructorInfo, string> objs = types[typeID];
+							object[] objs = ( object[] ) types[typeID];
 
 							if ( objs == null )
 								continue;
 
 							Mobile m = null;
-							ConstructorInfo ctor = objs.Item1;
-							string typeName = objs.Item2;
+							ConstructorInfo ctor = ( ConstructorInfo ) objs[0];
+							string typeName = ( string ) objs[1];
 
 							try {
 								ctorArgs[0] = ( Serial ) serial;
@@ -414,7 +388,44 @@ namespace Server {
 					using ( FileStream tdb = new FileStream( ItemTypesPath, FileMode.Open, FileAccess.Read, FileShare.Read ) ) {
 						BinaryReader tdbReader = new BinaryReader( tdb );
 
-						List<Tuple<ConstructorInfo, string>> types = ReadTypes( tdbReader );
+						int count = tdbReader.ReadInt32();
+
+						ArrayList types = new ArrayList( count );
+
+						for ( int i = 0; i < count; ++i ) {
+							string typeName = tdbReader.ReadString();
+
+							Type t = ScriptCompiler.FindTypeByFullName( typeName );
+
+							if ( t == null ) {
+								Console.WriteLine( "failed" );
+								
+								
+								if ( !Core.Service ) {
+								Console.WriteLine( "Error: Type '{0}' was not found. Delete all of those types? (y/n)", typeName );
+
+								if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
+									types.Add( null );
+									Console.Write( "World: Loading..." );
+									continue;
+								}
+
+									Console.WriteLine( "Types will not be deleted. An exception will be thrown." );
+								} else {
+									Console.WriteLine( "Error: Type '{0}' was not found.", typeName );
+								}
+
+								throw new Exception( String.Format( "Bad type '{0}'", typeName ) );
+							}
+
+							ConstructorInfo ctor = t.GetConstructor( ctorTypes );
+
+							if ( ctor != null ) {
+								types.Add( new object[] { ctor, typeName } );
+							} else {
+								throw new Exception( String.Format( "Type '{0}' does not have a serialization constructor", t ) );
+							}
+						}
 
 						itemCount = idxReader.ReadInt32();
 
@@ -426,14 +437,14 @@ namespace Server {
 							long pos = idxReader.ReadInt64();
 							int length = idxReader.ReadInt32();
 
-							Tuple<ConstructorInfo, string> objs = types[typeID];
+							object[] objs = ( object[] ) types[typeID];
 
 							if ( objs == null )
 								continue;
 
 							Item item = null;
-							ConstructorInfo ctor = objs.Item1;
-							string typeName = objs.Item2;
+							ConstructorInfo ctor = ( ConstructorInfo ) objs[0];
+							string typeName = ( string ) objs[1];
 
 							try {
 								ctorArgs[0] = ( Serial ) serial;
@@ -470,8 +481,7 @@ namespace Server {
 						int length = idxReader.ReadInt32();
 
 						createEventArgs.Id = id;
-						EventSink.InvokeCreateGuild(createEventArgs);
-						BaseGuild guild = createEventArgs.Guild;
+						BaseGuild guild = EventSink.InvokeCreateGuild( createEventArgs );
 						if ( guild != null )
 							guilds.Add( new GuildEntry( guild, pos, length ) );
 					}
@@ -599,38 +609,38 @@ namespace Server {
 				Console.WriteLine( " - Serial: {0}", failedSerial );
 
 				if ( !Core.Service ) {
-					Console.WriteLine( "Delete the object? (y/n)" );
+				Console.WriteLine( "Delete the object? (y/n)" );
 
-					if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
-						if ( failedType != typeof( BaseGuild ) ) {
-							Console.WriteLine( "Delete all objects of that type? (y/n)" );
+				if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
+					if ( failedType != typeof( BaseGuild ) ) {
+						Console.WriteLine( "Delete all objects of that type? (y/n)" );
 
-							if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
-								if ( failedMobiles ) {
-									for ( int i = 0; i < mobiles.Count; ) {
-										if ( mobiles[i].TypeID == failedTypeID )
-											mobiles.RemoveAt( i );
-										else
-											++i;
-									}
-								} else if ( failedItems ) {
-									for ( int i = 0; i < items.Count; ) {
-										if ( items[i].TypeID == failedTypeID )
-											items.RemoveAt( i );
-										else
-											++i;
-									}
+						if ( Console.ReadKey( true ).Key == ConsoleKey.Y ) {
+							if ( failedMobiles ) {
+								for ( int i = 0; i < mobiles.Count; ) {
+									if ( mobiles[i].TypeID == failedTypeID )
+										mobiles.RemoveAt( i );
+									else
+										++i;
+								}
+							} else if ( failedItems ) {
+								for ( int i = 0; i < items.Count; ) {
+									if ( items[i].TypeID == failedTypeID )
+										items.RemoveAt( i );
+									else
+										++i;
 								}
 							}
 						}
-
-						SaveIndex<MobileEntry>( mobiles, MobileIndexPath );
-						SaveIndex<ItemEntry>( items, ItemIndexPath );
-						SaveIndex<GuildEntry>( guilds, GuildIndexPath );
 					}
 
+					SaveIndex<MobileEntry>( mobiles, MobileIndexPath );
+					SaveIndex<ItemEntry>( items, ItemIndexPath );
+					SaveIndex<GuildEntry>( guilds, GuildIndexPath );
+				}
+
 					Console.WriteLine( "After pressing return an exception will be thrown and the server will terminate." );
-					Console.ReadLine();
+				Console.ReadLine();
 				} else {
 					Console.WriteLine( "An exception will be thrown and the server will terminate." );
 				}
@@ -709,7 +719,7 @@ namespace Server {
 
 			try {
 				using ( StreamWriter op = new StreamWriter( "world-save-errors.log", true ) ) {
-					op.WriteLine( "{0}\t{1}", DateTime.UtcNow, message );
+					op.WriteLine( "{0}\t{1}", DateTime.Now, message );
 					op.WriteLine( new StackTrace( 2 ).ToString() );
 					op.WriteLine();
 				}
@@ -748,23 +758,18 @@ namespace Server {
 		internal static int m_Saves;
 
 		public static void Save() {
-			Save( true, false );
+			++m_Saves;
+			Save( true );
 		}
 
-		public static void Save( bool message, bool permitBackgroundWrite ) {
-			if ( m_Saving )
+		public static void Save( bool message ) {
+			if ( m_Saving || AsyncWriter.ThreadCount > 0 )
 				return;
-
-			++m_Saves;
 
 			NetState.FlushAll();
 			NetState.Pause();
 
-			World.WaitForWriteCompletion();//Blocks Save until current disk flush is done.
-
 			m_Saving = true;
-
-			m_DiskWriteHandle.Reset();
 
 			if ( message )
 				Broadcast( 0x35, true, "The world is saving, please wait." );
@@ -785,7 +790,7 @@ namespace Server {
 
 
 			/*using ( SaveMetrics metrics = new SaveMetrics() ) {*/
-			strategy.Save( null, permitBackgroundWrite );
+			strategy.Save( null );
 			/*}*/
 
 			try {
@@ -798,14 +803,11 @@ namespace Server {
 
 			m_Saving = false;
 
-			if (!permitBackgroundWrite)
-				World.NotifyDiskWriteComplete();	//Sets the DiskWriteHandle.  If we allow background writes, we leave this upto the individual save strategies.
-
 			ProcessSafetyQueues();
 
 			strategy.ProcessDecay();
 
-			Console.WriteLine( "Save done in {0:F2} seconds.", watch.Elapsed.TotalSeconds );
+			Console.WriteLine( "done in {0:F2} seconds.", watch.Elapsed.TotalSeconds );
 
 			if ( message )
 				Broadcast( 0x35, true, "World save complete. The entire process took {0:F1} seconds.", watch.Elapsed.TotalSeconds );

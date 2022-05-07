@@ -20,6 +20,7 @@
 
 using System;
 using System.Text;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -56,7 +57,7 @@ namespace Server.Network
 		Encoded = 0xC0
 	}
 
-	public static class PacketHandlers
+	public class PacketHandlers
 	{
 		private static PacketHandler[] m_Handlers;
 		private static PacketHandler[] m_6017Handlers;
@@ -69,7 +70,7 @@ namespace Server.Network
 
 		public static PacketHandler[] Handlers
 		{
-			get{ return m_Handlers; }
+			get { return m_Handlers; }
 		}
 
 		static PacketHandlers()
@@ -83,515 +84,510 @@ namespace Server.Network
 			m_EncodedHandlersLow = new EncodedPacketHandler[0x100];
 			m_EncodedHandlersHigh = new Dictionary<int, EncodedPacketHandler>();
 
-			Register( 0x00, 104, false, new OnPacketReceive( CreateCharacter ) );
-			Register( 0x01,   5, false, new OnPacketReceive( Disconnect ) );
-			Register( 0x02,   7,  true, new OnPacketReceive( MovementReq ) );
-			Register( 0x03,   0,  true, new OnPacketReceive( AsciiSpeech ) );
-			Register( 0x04,   2,  true, new OnPacketReceive( GodModeRequest ) );
-			Register( 0x05,   5,  true, new OnPacketReceive( AttackReq ) );
-			Register( 0x06,   5,  true, new OnPacketReceive( UseReq ) );
-			Register( 0x07,   7,  true, new OnPacketReceive( LiftReq ) );
-			Register( 0x08,  14,  true, new OnPacketReceive( DropReq ) );
-			Register( 0x09,   5,  true, new OnPacketReceive( LookReq ) );
-			Register( 0x0A,  11,  true, new OnPacketReceive( Edit ) );
-			Register( 0x12,   0,  true, new OnPacketReceive( TextCommand ) );
-			Register( 0x13,  10,  true, new OnPacketReceive( EquipReq ) );
-			Register( 0x14,   6,  true, new OnPacketReceive( ChangeZ ) );
-			Register( 0x22,   3,  true, new OnPacketReceive( Resynchronize ) );
-			Register( 0x2C,   2,  true, new OnPacketReceive( DeathStatusResponse ) );
-			Register( 0x34,  10,  true, new OnPacketReceive( MobileQuery ) );
-			Register( 0x3A,   0,  true, new OnPacketReceive( ChangeSkillLock ) );
-			Register( 0x3B,   0,  true, new OnPacketReceive( VendorBuyReply ) );
-			Register( 0x47,  11,  true, new OnPacketReceive( NewTerrain ) );
-			Register( 0x48,  73,  true, new OnPacketReceive( NewAnimData ) );
-			Register( 0x58, 106,  true, new OnPacketReceive( NewRegion ) );
-			Register( 0x5D,  73, false, new OnPacketReceive( PlayCharacter ) );
-			Register( 0x61,   9,  true, new OnPacketReceive( DeleteStatic ) );
-			Register( 0x6C,  19,  true, new OnPacketReceive( TargetResponse ) );
-			Register( 0x6F,   0,  true, new OnPacketReceive( SecureTrade ) );
-			Register( 0x72,   5,  true, new OnPacketReceive( SetWarMode ) );
-			Register( 0x73,   2, false, new OnPacketReceive( PingReq ) );
-			Register( 0x75,  35,  true, new OnPacketReceive( RenameRequest ) );
-			Register( 0x79,   9,  true, new OnPacketReceive( ResourceQuery ) );
-			Register( 0x7E,   2,  true, new OnPacketReceive( GodviewQuery ) );
-			Register( 0x7D,  13,  true, new OnPacketReceive( MenuResponse ) );
-			Register( 0x80,  62, false, new OnPacketReceive( AccountLogin ) );
-			Register( 0x83,  39, false, new OnPacketReceive( DeleteCharacter ) );
-			Register( 0x91,  65, false, new OnPacketReceive( GameLogin ) );
-			Register( 0x95,   9,  true, new OnPacketReceive( HuePickerResponse ) );
-			Register( 0x96,   0,  true, new OnPacketReceive( GameCentralMoniter ) );
-			Register( 0x98,   0,  true, new OnPacketReceive( MobileNameRequest ) );
-			Register( 0x9A,   0,  true, new OnPacketReceive( AsciiPromptResponse ) );
-			Register( 0x9B, 258,  true, new OnPacketReceive( HelpRequest ) );
-			Register( 0x9D,  51,  true, new OnPacketReceive( GMSingle ) );
-			Register( 0x9F,   0,  true, new OnPacketReceive( VendorSellReply ) );
-			Register( 0xA0,   3, false, new OnPacketReceive( PlayServer ) );
-			Register( 0xA4, 149, false, new OnPacketReceive( SystemInfo ) );
-			Register( 0xA7,   4,  true, new OnPacketReceive( RequestScrollWindow ) );
-			Register( 0xAD,   0,  true, new OnPacketReceive( UnicodeSpeech ) );
-			Register( 0xB1,   0,  true, new OnPacketReceive( DisplayGumpResponse ) );
-			Register( 0xB5,  64,  true, new OnPacketReceive( ChatRequest ) );
-			Register( 0xB6,   9,  true, new OnPacketReceive( ObjectHelpRequest ) );
-			Register( 0xB8,   0,  true, new OnPacketReceive( ProfileReq ) );
-			Register( 0xBB,   9, false, new OnPacketReceive( AccountID ) );
-			Register( 0xBD,   0, false, new OnPacketReceive( ClientVersion ) );
-			Register( 0xBE,   0,  true, new OnPacketReceive( AssistVersion ) );
-			Register( 0xBF,   0,  true, new OnPacketReceive( ExtendedCommand ) );
-			Register( 0xC2,   0,  true, new OnPacketReceive( UnicodePromptResponse ) );
-			Register( 0xC8,   2,  true, new OnPacketReceive( SetUpdateRange ) );
-			Register( 0xC9,   6,  true, new OnPacketReceive( TripTime ) );
-			Register( 0xCA,   6,  true, new OnPacketReceive( UTripTime ) );
-			Register( 0xCF,   0, false, new OnPacketReceive( AccountLogin ) );
-			Register( 0xD0,   0,  true, new OnPacketReceive( ConfigurationFile ) );
-			Register( 0xD1,   2,  true, new OnPacketReceive( LogoutReq ) );
-			Register( 0xD6,   0,  true, new OnPacketReceive( BatchQueryProperties ) );
-			Register( 0xD7,   0,  true, new OnPacketReceive( EncodedCommand ) );
-			Register( 0xE1,   0, false, new OnPacketReceive( ClientType ) );
-			Register( 0xEF,  21, false, new OnPacketReceive( LoginServerSeed ) );
-			Register( 0xF4,   0, false, new OnPacketReceive( CrashReport ) );
-			Register( 0xF8, 106, false, new OnPacketReceive( CreateCharacter70160 ) );
+			Register(0x00, 104, false, new OnPacketReceive(CreateCharacter));
+			Register(0x01, 5, false, new OnPacketReceive(Disconnect));
+			Register(0x02, 7, true, new OnPacketReceive(MovementReq));
+			Register(0x03, 0, true, new OnPacketReceive(AsciiSpeech));
+			Register(0x04, 2, true, new OnPacketReceive(GodModeRequest));
+			Register(0x05, 5, true, new OnPacketReceive(AttackReq));
+			Register(0x06, 5, true, new OnPacketReceive(UseReq));
+			Register(0x07, 7, true, new OnPacketReceive(LiftReq));
+			Register(0x08, 14, true, new OnPacketReceive(DropReq));
+			Register(0x09, 5, true, new OnPacketReceive(LookReq));
+			Register(0x0A, 11, true, new OnPacketReceive(Edit));
+			Register(0x12, 0, true, new OnPacketReceive(TextCommand));
+			Register(0x13, 10, true, new OnPacketReceive(EquipReq));
+			Register(0x14, 6, true, new OnPacketReceive(ChangeZ));
+			Register(0x22, 3, true, new OnPacketReceive(Resynchronize));
+			Register(0x2C, 2, true, new OnPacketReceive(DeathStatusResponse));
+			Register(0x34, 10, true, new OnPacketReceive(MobileQuery));
+			Register(0x3A, 0, true, new OnPacketReceive(ChangeSkillLock));
+			Register(0x3B, 0, true, new OnPacketReceive(VendorBuyReply));
+			Register(0x47, 11, true, new OnPacketReceive(NewTerrain));
+			Register(0x48, 73, true, new OnPacketReceive(NewAnimData));
+			Register(0x58, 106, true, new OnPacketReceive(NewRegion));
+			Register(0x5D, 73, false, new OnPacketReceive(PlayCharacter));
+			Register(0x61, 9, true, new OnPacketReceive(DeleteStatic));
+			Register(0x6C, 19, true, new OnPacketReceive(TargetResponse));
+			Register(0x6F, 0, true, new OnPacketReceive(SecureTrade));
+			Register(0x72, 5, true, new OnPacketReceive(SetWarMode));
+			Register(0x73, 2, false, new OnPacketReceive(PingReq));
+			Register(0x75, 35, true, new OnPacketReceive(RenameRequest));
+			Register(0x79, 9, true, new OnPacketReceive(ResourceQuery));
+			Register(0x7E, 2, true, new OnPacketReceive(GodviewQuery));
+			Register(0x7D, 13, true, new OnPacketReceive(MenuResponse));
+			Register(0x80, 62, false, new OnPacketReceive(AccountLogin));
+			Register(0x83, 39, false, new OnPacketReceive(DeleteCharacter));
+			Register(0x91, 65, false, new OnPacketReceive(GameLogin));
+			Register(0x95, 9, true, new OnPacketReceive(HuePickerResponse));
+			Register(0x96, 0, true, new OnPacketReceive(GameCentralMoniter));
+			Register(0x98, 0, true, new OnPacketReceive(MobileNameRequest));
+			Register(0x9A, 0, true, new OnPacketReceive(AsciiPromptResponse));
+			Register(0x9B, 258, true, new OnPacketReceive(HelpRequest));
+			Register(0x9D, 51, true, new OnPacketReceive(GMSingle));
+			Register(0x9F, 0, true, new OnPacketReceive(VendorSellReply));
+			Register(0xA0, 3, false, new OnPacketReceive(PlayServer));
+			Register(0xA4, 149, false, new OnPacketReceive(SystemInfo));
+			Register(0xA7, 4, true, new OnPacketReceive(RequestScrollWindow));
+			Register(0xAD, 0, true, new OnPacketReceive(UnicodeSpeech));
+			Register(0xB1, 0, true, new OnPacketReceive(DisplayGumpResponse));
+			//Chat is on Distro
+			//Register(0xB5, 64, true, new OnPacketReceive(ChatRequest));
+			Register(0xB6, 9, true, new OnPacketReceive(ObjectHelpRequest));
+			Register(0xB8, 0, true, new OnPacketReceive(ProfileReq));
+			Register(0xBB, 9, false, new OnPacketReceive(AccountID));
+			Register(0xBD, 0, false, new OnPacketReceive(ClientVersion));
+			Register(0xBE, 0, true, new OnPacketReceive(AssistVersion));
+			Register(0xBF, 0, true, new OnPacketReceive(ExtendedCommand));
+			Register(0xC2, 0, true, new OnPacketReceive(UnicodePromptResponse));
+			Register(0xC8, 2, true, new OnPacketReceive(SetUpdateRange));
+			Register(0xC9, 6, true, new OnPacketReceive(TripTime));
+			Register(0xCA, 6, true, new OnPacketReceive(UTripTime));
+			Register(0xCF, 0, false, new OnPacketReceive(AccountLogin));
+			Register(0xD0, 0, true, new OnPacketReceive(ConfigurationFile));
+			Register(0xD1, 2, true, new OnPacketReceive(LogoutReq));
+			Register(0xD6, 0, true, new OnPacketReceive(BatchQueryProperties));
+			Register(0xD7, 0, true, new OnPacketReceive(EncodedCommand));
+			Register(0xEF, 21, false, new OnPacketReceive(LoginServerSeed));
 
-			Register6017( 0x08, 15, true, new OnPacketReceive( DropReq6017 ) );
+			Register6017(0x08, 15, true, new OnPacketReceive(DropReq6017));
 
-			RegisterExtended( 0x05, false, new OnPacketReceive( ScreenSize ) );
-			RegisterExtended( 0x06,  true, new OnPacketReceive( PartyMessage ) );
-			RegisterExtended( 0x07,  true, new OnPacketReceive( QuestArrow ) );
-			RegisterExtended( 0x09,  true, new OnPacketReceive( DisarmRequest ) );
-			RegisterExtended( 0x0A,  true, new OnPacketReceive( StunRequest ) );
-			RegisterExtended( 0x0B, false, new OnPacketReceive( Language ) );
-			RegisterExtended( 0x0C,  true, new OnPacketReceive( CloseStatus ) );
-			RegisterExtended( 0x0E,  true, new OnPacketReceive( Animate ) );
-			RegisterExtended( 0x0F, false, new OnPacketReceive( Empty ) ); // What's this?
-			RegisterExtended( 0x10,  true, new OnPacketReceive( QueryProperties ) );
-			RegisterExtended( 0x13,  true, new OnPacketReceive( ContextMenuRequest ) );
-			RegisterExtended( 0x15,  true, new OnPacketReceive( ContextMenuResponse ) );
-			RegisterExtended( 0x1A,  true, new OnPacketReceive( StatLockChange ) );
-			RegisterExtended( 0x1C,  true, new OnPacketReceive( CastSpell ) );
-			RegisterExtended( 0x24, false, new OnPacketReceive( UnhandledBF ) );
-			RegisterExtended( 0x2C,  true, new OnPacketReceive( BandageTarget ) );
-			RegisterExtended( 0x32,  true, new OnPacketReceive( ToggleFlying ) );
+			#region KR
+			Register(0x89, 39, false, new OnPacketReceive(DeleteCharacter));
+			Register(0x8D, 0, false, new OnPacketReceive(KRCreateCharacter));
+			Register6017(0xE0, 0, true, new OnPacketReceive(BugReport));
+			Register(0xE1, 0, false, new OnPacketReceive(ReceiveClientIdentifier));
+			Register(0xE4, 0, false, new OnPacketReceive(KRVerifierResponse));
+			Register(0xE8, 13, true, new OnPacketReceive(RemoveHighlightKRElement));
+			Register(0xEB, 13, true, new OnPacketReceive(ReportUseKRHotbarIcon));
+			Register(0xEC, 0, true, new OnPacketReceive(EquipMacro));
+			Register(0xED, 0, true, new OnPacketReceive(UnequipMacro));
+			#region SA
+			Register(0xF0, 0, true, new OnPacketReceive(SAMovementRequest));
+			Register(0xF1, 9, true, new OnPacketReceive(SASynchronization));
+			Register(0xF4, 0, false, new OnPacketReceive(ClientCrashReport));
+			#endregion
+			Register(0xFF, 4, false, new OnPacketReceive(KRSeed));
+			#endregion		
 
-			RegisterEncoded( 0x19, true, new OnEncodedPacketReceive( SetAbility ) );
-			RegisterEncoded( 0x28, true, new OnEncodedPacketReceive( GuildGumpRequest ) );
+			RegisterExtended(0x05, false, new OnPacketReceive(ScreenSize));
+			RegisterExtended(0x06, true, new OnPacketReceive(PartyMessage));
+			RegisterExtended(0x07, true, new OnPacketReceive(QuestArrow));
+			RegisterExtended(0x09, true, new OnPacketReceive(DisarmRequest));
+			RegisterExtended(0x0A, true, new OnPacketReceive(StunRequest));
+			RegisterExtended(0x0B, false, new OnPacketReceive(Language));
+			RegisterExtended(0x0C, true, new OnPacketReceive(CloseStatus));
+			RegisterExtended(0x0E, true, new OnPacketReceive(Animate));
+			RegisterExtended(0x0F, false, new OnPacketReceive(Empty)); // What's this?
+			RegisterExtended(0x10, true, new OnPacketReceive(QueryProperties));
+			RegisterExtended(0x13, true, new OnPacketReceive(ContextMenuRequest));
+			RegisterExtended(0x15, true, new OnPacketReceive(ContextMenuResponse));
+			RegisterExtended(0x1A, true, new OnPacketReceive(StatLockChange));
+			RegisterExtended(0x1C, true, new OnPacketReceive(CastSpell));
+			RegisterExtended(0x24, false, new OnPacketReceive(UnhandledBF));
 
-			RegisterEncoded( 0x32, true, new OnEncodedPacketReceive( QuestGumpRequest ) );
+			#region KR
+			RegisterExtended(0x2C, true, new OnPacketReceive(TargetedItemUse));
+			RegisterExtended(0x2D, true, new OnPacketReceive(TargetedSpell));
+			RegisterExtended(0x2E, true, new OnPacketReceive(TargetedSkillUse));
+			RegisterExtended(0x30, true, new OnPacketReceive(TargetByResourceMacro));
+			RegisterExtended(0x32, true, new OnPacketReceive(SwitchFlying));
+			RegisterExtended(0x2F, true, new OnPacketReceive(HouseGumpResponse));
+			#endregion
+
+			RegisterEncoded(0x19, true, new OnEncodedPacketReceive(SetAbility));
+			RegisterEncoded(0x28, true, new OnEncodedPacketReceive(GuildGumpRequest));
+
+			RegisterEncoded(0x32, true, new OnEncodedPacketReceive(QuestGumpRequest));
+			#region SA
+			RegisterEncoded(0x1E, true, new OnEncodedPacketReceive(EquipLastWeapon));
+			#endregion
 		}
 
-		public static void Register( int packetID, int length, bool ingame, OnPacketReceive onReceive )
+		public static void Register(int packetID, int length, bool ingame, OnPacketReceive onReceive)
 		{
-			m_Handlers[packetID] = new PacketHandler( packetID, length, ingame, onReceive );
+			m_Handlers[packetID] = new PacketHandler(packetID, length, ingame, onReceive);
 
-			if ( m_6017Handlers[packetID] == null )
-				m_6017Handlers[packetID] = new PacketHandler( packetID, length, ingame, onReceive );
+			if (m_6017Handlers[packetID] == null)
+				m_6017Handlers[packetID] = new PacketHandler(packetID, length, ingame, onReceive);
 		}
 
-		public static PacketHandler GetHandler( int packetID )
+		public static PacketHandler GetHandler(int packetID)
 		{
 			return m_Handlers[packetID];
 		}
 
-		public static void Register6017( int packetID, int length, bool ingame, OnPacketReceive onReceive )
+		public static void Register6017(int packetID, int length, bool ingame, OnPacketReceive onReceive)
 		{
-			m_6017Handlers[packetID] = new PacketHandler( packetID, length, ingame, onReceive );
+			m_6017Handlers[packetID] = new PacketHandler(packetID, length, ingame, onReceive);
 		}
 
-		public static PacketHandler Get6017Handler( int packetID )
+		public static PacketHandler Get6017Handler(int packetID)
 		{
 			return m_6017Handlers[packetID];
 		}
 
-		public static void RegisterExtended( int packetID, bool ingame, OnPacketReceive onReceive )
+		public static void RegisterExtended(int packetID, bool ingame, OnPacketReceive onReceive)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
-				m_ExtendedHandlersLow[packetID] = new PacketHandler( packetID, 0, ingame, onReceive );
+			if (packetID >= 0 && packetID < 0x100)
+				m_ExtendedHandlersLow[packetID] = new PacketHandler(packetID, 0, ingame, onReceive);
 			else
-				m_ExtendedHandlersHigh[packetID] = new PacketHandler( packetID, 0, ingame, onReceive );
+				m_ExtendedHandlersHigh[packetID] = new PacketHandler(packetID, 0, ingame, onReceive);
 		}
 
-		public static PacketHandler GetExtendedHandler( int packetID )
+		public static PacketHandler GetExtendedHandler(int packetID)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
+			if (packetID >= 0 && packetID < 0x100)
 				return m_ExtendedHandlersLow[packetID];
 			else
 			{
 				PacketHandler handler;
-				m_ExtendedHandlersHigh.TryGetValue( packetID, out handler );
+				m_ExtendedHandlersHigh.TryGetValue(packetID, out handler);
 				return handler;
 			}
 		}
 
-		public static void RemoveExtendedHandler( int packetID )
+		public static void RemoveExtendedHandler(int packetID)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
+			if (packetID >= 0 && packetID < 0x100)
 				m_ExtendedHandlersLow[packetID] = null;
 			else
-				m_ExtendedHandlersHigh.Remove( packetID );
+				m_ExtendedHandlersHigh.Remove(packetID);
 		}
 
-		public static void RegisterEncoded( int packetID, bool ingame, OnEncodedPacketReceive onReceive )
+		public static void RegisterEncoded(int packetID, bool ingame, OnEncodedPacketReceive onReceive)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
-				m_EncodedHandlersLow[packetID] = new EncodedPacketHandler( packetID, ingame, onReceive );
+			if (packetID >= 0 && packetID < 0x100)
+				m_EncodedHandlersLow[packetID] = new EncodedPacketHandler(packetID, ingame, onReceive);
 			else
-				m_EncodedHandlersHigh[packetID] = new EncodedPacketHandler( packetID, ingame, onReceive );
+				m_EncodedHandlersHigh[packetID] = new EncodedPacketHandler(packetID, ingame, onReceive);
 		}
 
-		public static EncodedPacketHandler GetEncodedHandler( int packetID )
+		public static EncodedPacketHandler GetEncodedHandler(int packetID)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
+			if (packetID >= 0 && packetID < 0x100)
 				return m_EncodedHandlersLow[packetID];
 			else
 			{
 				EncodedPacketHandler handler;
-				m_EncodedHandlersHigh.TryGetValue( packetID, out handler );
+				m_EncodedHandlersHigh.TryGetValue(packetID, out handler);
 				return handler;
 			}
 		}
 
-		public static void RemoveEncodedHandler( int packetID )
+		public static void RemoveEncodedHandler(int packetID)
 		{
-			if ( packetID >= 0 && packetID < 0x100 )
+			if (packetID >= 0 && packetID < 0x100)
 				m_EncodedHandlersLow[packetID] = null;
 			else
-				m_EncodedHandlersHigh.Remove( packetID );
+				m_EncodedHandlersHigh.Remove(packetID);
 		}
 
-		public static void RegisterThrottler( int packetID, ThrottlePacketCallback t )
+		public static void RegisterThrottler(int packetID, ThrottlePacketCallback t)
 		{
-			PacketHandler ph = GetHandler( packetID );
+			PacketHandler ph = GetHandler(packetID);
 
-			if ( ph != null )
+			if (ph != null)
 				ph.ThrottleCallback = t;
 
-			ph = Get6017Handler( packetID );
+			ph = Get6017Handler(packetID);
 
-			if ( ph != null )
+			if (ph != null)
 				ph.ThrottleCallback = t;
 		}
 
-		private static void UnhandledBF( NetState state, PacketReader pvSrc )
+		private static void UnhandledBF(NetState state, PacketReader pvSrc)
 		{
 		}
 
-		public static void Empty( NetState state, PacketReader pvSrc )
+		public static void Empty(NetState state, PacketReader pvSrc)
 		{
 		}
 
-		public static void SetAbility( NetState state, IEntity e, EncodedReader reader )
+		public static void SetAbility(NetState state, IEntity e, EncodedReader reader)
 		{
-			EventSink.InvokeSetAbility( new SetAbilityEventArgs( state.Mobile, reader.ReadInt32() ) );
+			EventSink.InvokeSetAbility(new SetAbilityEventArgs(state.Mobile, reader.ReadInt32()));
 		}
 
-		public static void GuildGumpRequest( NetState state, IEntity e, EncodedReader reader )
+		public static void GuildGumpRequest(NetState state, IEntity e, EncodedReader reader)
 		{
-			EventSink.InvokeGuildGumpRequest( new GuildGumpRequestArgs( state.Mobile ) );
+			EventSink.InvokeGuildGumpRequest(new GuildGumpRequestArgs(state.Mobile));
 		}
 
-		public static void QuestGumpRequest( NetState state, IEntity e, EncodedReader reader )
+		public static void QuestGumpRequest(NetState state, IEntity e, EncodedReader reader)
 		{
-			EventSink.InvokeQuestGumpRequest( new QuestGumpRequestArgs( state.Mobile ) );
+			EventSink.InvokeQuestGumpRequest(new QuestGumpRequestArgs(state.Mobile));
 		}
 
-		public static void EncodedCommand( NetState state, PacketReader pvSrc )
+		public static void EncodedCommand(NetState state, PacketReader pvSrc)
 		{
-			IEntity e = World.FindEntity( pvSrc.ReadInt32() );
+			IEntity e = World.FindEntity(pvSrc.ReadInt32());
 			int packetID = pvSrc.ReadUInt16();
 
-			EncodedPacketHandler ph = GetEncodedHandler( packetID );
+			EncodedPacketHandler ph = GetEncodedHandler(packetID);
 
-			if ( ph != null )
+			if (ph != null)
 			{
-				if ( ph.Ingame && state.Mobile == null )
+				if (ph.Ingame && state.Mobile == null)
 				{
-					Console.WriteLine( "Client: {0}: Sent ingame packet (0xD7x{1:X2}) before having been attached to a mobile", state, packetID );
+					Console.WriteLine("Client: {0}: Sent ingame packet (0xD7x{1:X2}) before having been attached to a mobile", state, packetID);
 					state.Dispose();
 				}
-				else if ( ph.Ingame && state.Mobile.Deleted )
+				else if (ph.Ingame && state.Mobile.Deleted)
 				{
 					state.Dispose();
 				}
 				else
 				{
-					ph.OnReceive( state, e, new EncodedReader( pvSrc ) );
+					ph.OnReceive(state, e, new EncodedReader(pvSrc));
 				}
 			}
 			else
 			{
-				pvSrc.Trace( state );
+				pvSrc.Trace(state);
 			}
 		}
 
-		public static void RenameRequest( NetState state, PacketReader pvSrc )
+		public static void RenameRequest(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			Mobile targ = World.FindMobile( pvSrc.ReadInt32() );
+			Mobile targ = World.FindMobile(pvSrc.ReadInt32());
 
-			if ( targ != null )
-				EventSink.InvokeRenameRequest( new RenameRequestEventArgs( from, targ, pvSrc.ReadStringSafe() ) );
+			if (targ != null)
+				EventSink.InvokeRenameRequest(new RenameRequestEventArgs(from, targ, pvSrc.ReadStringSafe()));
 		}
 
-		public static void ChatRequest( NetState state, PacketReader pvSrc )
+		public static void ChatRequest(NetState state, PacketReader pvSrc)
 		{
-			EventSink.InvokeChatRequest( new ChatRequestEventArgs( state.Mobile ) );
+			EventSink.InvokeChatRequest(new ChatRequestEventArgs(state.Mobile));
 		}
 
-		public static void SecureTrade( NetState state, PacketReader pvSrc )
+		public static void SecureTrade(NetState state, PacketReader pvSrc)
 		{
-			switch ( pvSrc.ReadByte() )
+			switch (pvSrc.ReadByte())
 			{
 				case 1: // Cancel
-				{
-					Serial serial = pvSrc.ReadInt32();
+					{
+						Serial serial = pvSrc.ReadInt32();
 
-					SecureTradeContainer cont = World.FindItem( serial ) as SecureTradeContainer;
+						SecureTradeContainer cont = World.FindItem(serial) as SecureTradeContainer;
 
-					if ( cont != null && cont.Trade != null && (cont.Trade.From.Mobile == state.Mobile || cont.Trade.To.Mobile == state.Mobile) )
-						cont.Trade.Cancel();
+						if (cont != null && cont.Trade != null && (cont.Trade.From.Mobile == state.Mobile || cont.Trade.To.Mobile == state.Mobile))
+							cont.Trade.Cancel();
 
-					break;
-				}
+						break;
+					}
 				case 2: // Check
-				{
-					Serial serial = pvSrc.ReadInt32();
-
-					SecureTradeContainer cont = World.FindItem( serial ) as SecureTradeContainer;
-
-					if ( cont != null )
 					{
-						SecureTrade trade = cont.Trade;
+						Serial serial = pvSrc.ReadInt32();
 
-						bool value = ( pvSrc.ReadInt32() != 0 );
+						SecureTradeContainer cont = World.FindItem(serial) as SecureTradeContainer;
 
-						if ( trade != null && trade.From.Mobile == state.Mobile )
+						if (cont != null)
 						{
-							trade.From.Accepted = value;
-							trade.Update();
-						}
-						else if ( trade != null && trade.To.Mobile == state.Mobile )
-						{
-							trade.To.Accepted = value;
-							trade.Update();
-						}
-					}
+							SecureTrade trade = cont.Trade;
 
-					break;
-				}
-				case 3: // Update Gold
-				{
-					Serial serial = pvSrc.ReadInt32();
+							bool value = (pvSrc.ReadInt32() != 0);
 
-					SecureTradeContainer cont = World.FindItem(serial) as SecureTradeContainer;
-
-					if (cont != null)
-					{
-						int gold = pvSrc.ReadInt32();
-						int plat = pvSrc.ReadInt32();
-
-						SecureTrade trade = cont.Trade;
-
-						if (trade != null)
-						{
-							if (trade.From.Mobile == state.Mobile)
+							if (trade != null && trade.From.Mobile == state.Mobile)
 							{
-								trade.From.Gold = gold;
-								trade.From.Plat = plat;
-								trade.UpdateFromCurrency();
+								trade.From.Accepted = value;
+								trade.Update();
 							}
-							else if (trade.To.Mobile == state.Mobile)
+							else if (trade != null && trade.To.Mobile == state.Mobile)
 							{
-								trade.To.Gold = gold;
-								trade.To.Plat = plat;
-								trade.UpdateToCurrency();
+								trade.To.Accepted = value;
+								trade.Update();
 							}
 						}
+
+						break;
 					}
-				}
-				break;
 			}
 		}
 
-		public static void VendorBuyReply( NetState state, PacketReader pvSrc )
+		public static void VendorBuyReply(NetState state, PacketReader pvSrc)
 		{
-			pvSrc.Seek( 1, SeekOrigin.Begin );
+			pvSrc.Seek(1, SeekOrigin.Begin);
 
 			int msgSize = pvSrc.ReadUInt16();
-			Mobile vendor = World.FindMobile( pvSrc.ReadInt32() );
+			Mobile vendor = World.FindMobile(pvSrc.ReadInt32());
 			byte flag = pvSrc.ReadByte();
 
-			if ( vendor == null )
+			if (vendor == null)
 			{
 				return;
 			}
-			else if ( vendor.Deleted || !Utility.RangeCheck( vendor.Location, state.Mobile.Location, 10 ) )
+			else if (vendor.Deleted || !Utility.RangeCheck(vendor.Location, state.Mobile.Location, 10))
 			{
-				state.Send( new EndVendorBuy( vendor ) );
+				state.Send(new EndVendorBuy(vendor));
 				return;
 			}
 
-			if ( flag == 0x02 )
+			if (flag == 0x02)
 			{
-				msgSize -= 1+2+4+1;
+				msgSize -= 1 + 2 + 4 + 1;
 
-				if ( (msgSize / 7) > 100 )
+				if ((msgSize / 7) > 100)
 					return;
 
-				List<BuyItemResponse> buyList = new List<BuyItemResponse>( msgSize / 7 );
-				for ( ;msgSize>0;msgSize-=7)
+				ArrayList buyList = new ArrayList(msgSize / 7);
+				for (; msgSize > 0; msgSize -= 7)
 				{
 					byte layer = pvSrc.ReadByte();
 					Serial serial = pvSrc.ReadInt32();
 					int amount = pvSrc.ReadInt16();
-				
-					buyList.Add( new BuyItemResponse( serial, amount ) );
+
+					buyList.Add(new BuyItemResponse(serial, amount));
 				}
 
-				if ( buyList.Count > 0 )
+				if (buyList.Count > 0)
 				{
 					IVendor v = vendor as IVendor;
 
-					if ( v != null && v.OnBuyItems( state.Mobile, buyList ) )
-						state.Send( new EndVendorBuy( vendor ) );
+					if (v != null && v.OnBuyItems(state.Mobile, buyList))
+						state.Send(new EndVendorBuy(vendor));
 				}
 			}
 			else
 			{
-				state.Send( new EndVendorBuy( vendor ) );
+				state.Send(new EndVendorBuy(vendor));
 			}
 		}
 
-		public static void VendorSellReply( NetState state, PacketReader pvSrc )
+		public static void VendorSellReply(NetState state, PacketReader pvSrc)
 		{
 			Serial serial = pvSrc.ReadInt32();
-			Mobile vendor = World.FindMobile( serial );
+			Mobile vendor = World.FindMobile(serial);
 
-			if ( vendor == null )
+			if (vendor == null)
 			{
 				return;
 			}
-			else if ( vendor.Deleted || !Utility.RangeCheck( vendor.Location, state.Mobile.Location, 10 ) )
+			else if (vendor.Deleted || !Utility.RangeCheck(vendor.Location, state.Mobile.Location, 10))
 			{
-				state.Send( new EndVendorSell( vendor ) );
+				state.Send(new EndVendorSell(vendor));
 				return;
 			}
 
 			int count = pvSrc.ReadUInt16();
-			if ( count < 100 && pvSrc.Size == (1+2+4+2+(count*6)) )
+			if (count < 100 && pvSrc.Size == (1 + 2 + 4 + 2 + (count * 6)))
 			{
-				List<SellItemResponse> sellList = new List<SellItemResponse>( count );
+				ArrayList sellList = new ArrayList(count);
 
-				for (int i=0;i<count;i++)
+				for (int i = 0; i < count; i++)
 				{
-					Item item = World.FindItem( pvSrc.ReadInt32() );
+					Item item = World.FindItem(pvSrc.ReadInt32());
 					int Amount = pvSrc.ReadInt16();
 
-					if ( item != null && Amount > 0 )
-						sellList.Add(  new SellItemResponse( item, Amount ) );
+					if (item != null && Amount > 0)
+						sellList.Add(new SellItemResponse(item, Amount));
 				}
 
-				if ( sellList.Count > 0 )
+				if (sellList.Count > 0)
 				{
 					IVendor v = vendor as IVendor;
 
-					if ( v != null && v.OnSellItems( state.Mobile, sellList ) )
-						state.Send( new EndVendorSell( vendor ) );
+					if (v != null && v.OnSellItems(state.Mobile, sellList))
+						state.Send(new EndVendorSell(vendor));
 				}
 			}
 		}
 
-		public static void DeleteCharacter( NetState state, PacketReader pvSrc )
+		public static void DeleteCharacter(NetState state, PacketReader pvSrc)
 		{
-			pvSrc.Seek( 30, SeekOrigin.Current );
+			pvSrc.Seek(30, SeekOrigin.Current);
 			int index = pvSrc.ReadInt32();
 
-			EventSink.InvokeDeleteRequest( new DeleteRequestEventArgs( state, index ) );
+			EventSink.InvokeDeleteRequest(new DeleteRequestEventArgs(state, index));
 		}
 
-		public static void ResourceQuery( NetState state, PacketReader pvSrc )
+		public static void ResourceQuery(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 			}
 		}
 
-		public static void GameCentralMoniter( NetState state, PacketReader pvSrc )
+		public static void GameCentralMoniter(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 				int type = pvSrc.ReadByte();
 				int num1 = pvSrc.ReadInt32();
 
-				Console.WriteLine( "God Client: {0}: Game central moniter", state );
-				Console.WriteLine( " - Type: {0}", type );
-				Console.WriteLine( " - Number: {0}", num1 );
+				Console.WriteLine("God Client: {0}: Game central moniter", state);
+				Console.WriteLine(" - Type: {0}", type);
+				Console.WriteLine(" - Number: {0}", num1);
 
-				pvSrc.Trace( state );
+				pvSrc.Trace(state);
 			}
 		}
 
-		public static void GodviewQuery( NetState state, PacketReader pvSrc )
+		public static void GodviewQuery(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
-				Console.WriteLine( "God Client: {0}: Godview query 0x{1:X}", state, pvSrc.ReadByte() );
+				Console.WriteLine("God Client: {0}: Godview query 0x{1:X}", state, pvSrc.ReadByte());
 			}
 		}
 
-		public static void GMSingle( NetState state, PacketReader pvSrc )
+		public static void GMSingle(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
-				pvSrc.Trace( state );
+			if (VerifyGC(state))
+				pvSrc.Trace(state);
 		}
 
-		public static void DeathStatusResponse( NetState state, PacketReader pvSrc )
+		public static void DeathStatusResponse(NetState state, PacketReader pvSrc)
 		{
 			// Ignored
 		}
 
-		public static void ObjectHelpRequest( NetState state, PacketReader pvSrc )
+		public static void ObjectHelpRequest(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
 			Serial serial = pvSrc.ReadInt32();
 			int unk = pvSrc.ReadByte();
-			string lang = pvSrc.ReadString( 3 );
+			string lang = pvSrc.ReadString(3);
 
-			if ( serial.IsItem )
+			if (serial.IsItem)
 			{
-				Item item = World.FindItem( serial );
+				Item item = World.FindItem(serial);
 
-				if ( item != null && from.Map == item.Map && Utility.InUpdateRange( item.GetWorldLocation(), from.Location ) && from.CanSee( item ) )
-					item.OnHelpRequest( from );
+				if (item != null && from.Map == item.Map && Utility.InUpdateRange(item.GetWorldLocation(), from.Location) && from.CanSee(item))
+					item.OnHelpRequest(from);
 			}
-			else if ( serial.IsMobile )
+			else if (serial.IsMobile)
 			{
-				Mobile m = World.FindMobile( serial );
+				Mobile m = World.FindMobile(serial);
 
-				if ( m != null && from.Map == m.Map && Utility.InUpdateRange( m.Location, from.Location ) && from.CanSee( m ) )
-					m.OnHelpRequest( m );
+				if (m != null && from.Map == m.Map && Utility.InUpdateRange(m.Location, from.Location) && from.CanSee(m))
+					m.OnHelpRequest(m);
 			}
 		}
 
-		public static void MobileNameRequest( NetState state, PacketReader pvSrc )
+		public static void MobileNameRequest(NetState state, PacketReader pvSrc)
 		{
-			Mobile m = World.FindMobile( pvSrc.ReadInt32() );
+			Mobile m = World.FindMobile(pvSrc.ReadInt32());
 
-			if ( m != null && Utility.InUpdateRange( state.Mobile, m ) && state.Mobile.CanSee( m ) )
-				state.Send( new MobileName( m ) );
+			if (m != null && Utility.InUpdateRange(state.Mobile, m) && state.Mobile.CanSee(m))
+				state.Send(new MobileName(m));
 		}
 
-		public static void RequestScrollWindow( NetState state, PacketReader pvSrc )
+		public static void RequestScrollWindow(NetState state, PacketReader pvSrc)
 		{
 			int lastTip = pvSrc.ReadInt16();
 			int type = pvSrc.ReadByte();
 		}
 
-		public static void AttackReq( NetState state, PacketReader pvSrc )
+		public static void AttackReq(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			Mobile m = World.FindMobile( pvSrc.ReadInt32() );
+			Mobile m = World.FindMobile(pvSrc.ReadInt32());
 
-			if ( m != null )
-				from.Attack( m );
+			if (m != null)
+				from.Attack(m);
 		}
 
 		public static void HuePickerResponse( NetState state, PacketReader pvSrc ) {
@@ -599,56 +595,56 @@ namespace Server.Network
 			int value = pvSrc.ReadInt16();
 			int hue = pvSrc.ReadInt16() & 0x3FFF;
 
-			hue = Utility.ClipDyedHue( hue );
+			hue = Utility.ClipDyedHue(hue);
 
 			foreach ( HuePicker huePicker in state.HuePickers ) {
 				if ( huePicker.Serial == serial ) {
-					state.RemoveHuePicker( huePicker );
+					state.RemoveHuePicker(huePicker);
 
-					huePicker.OnResponse( hue );
+					huePicker.OnResponse(hue);
 
 					break;
 				}
 			}
 		}
 
-		public static void TripTime( NetState state, PacketReader pvSrc )
+		public static void TripTime(NetState state, PacketReader pvSrc)
 		{
 			int unk1 = pvSrc.ReadByte();
 			int unk2 = pvSrc.ReadInt32();
 
-			state.Send( new TripTimeResponse( unk1 ) );
+			state.Send(new TripTimeResponse(unk1));
 		}
 
-		public static void UTripTime( NetState state, PacketReader pvSrc )
+		public static void UTripTime(NetState state, PacketReader pvSrc)
 		{
 			int unk1 = pvSrc.ReadByte();
 			int unk2 = pvSrc.ReadInt32();
 
-			state.Send( new UTripTimeResponse( unk1 ) );
+			state.Send(new UTripTimeResponse(unk1));
 		}
 
-		public static void ChangeZ( NetState state, PacketReader pvSrc )
+		public static void ChangeZ(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 				int x = pvSrc.ReadInt16();
 				int y = pvSrc.ReadInt16();
 				int z = pvSrc.ReadSByte();
 
-				Console.WriteLine( "God Client: {0}: Change Z ({1}, {2}, {3})", state, x, y, z );
+				Console.WriteLine("God Client: {0}: Change Z ({1}, {2}, {3})", state, x, y, z);
 			}
 		}
 
-		public static void SystemInfo( NetState state, PacketReader pvSrc )
+		public static void SystemInfo(NetState state, PacketReader pvSrc)
 		{
 			int v1 = pvSrc.ReadByte();
 			int v2 = pvSrc.ReadUInt16();
 			int v3 = pvSrc.ReadByte();
-			string s1 = pvSrc.ReadString( 32 );
-			string s2 = pvSrc.ReadString( 32 );
-			string s3 = pvSrc.ReadString( 32 );
-			string s4 = pvSrc.ReadString( 32 );
+			string s1 = pvSrc.ReadString(32);
+			string s2 = pvSrc.ReadString(32);
+			string s3 = pvSrc.ReadString(32);
+			string s4 = pvSrc.ReadString(32);
 			int v4 = pvSrc.ReadUInt16();
 			int v5 = pvSrc.ReadUInt16();
 			int v6 = pvSrc.ReadInt32();
@@ -656,9 +652,9 @@ namespace Server.Network
 			int v8 = pvSrc.ReadInt32();
 		}
 
-		public static void Edit( NetState state, PacketReader pvSrc )
+		public static void Edit(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 				int type = pvSrc.ReadByte(); // 10 = static, 7 = npc, 4 = dynamic
 				int x = pvSrc.ReadInt16();
@@ -667,36 +663,36 @@ namespace Server.Network
 				int z = pvSrc.ReadSByte();
 				int hue = pvSrc.ReadUInt16();
 
-				Console.WriteLine( "God Client: {0}: Edit {6} ({1}, {2}, {3}) 0x{4:X} (0x{5:X})", state, x, y, z, id, hue, type );
+				Console.WriteLine("God Client: {0}: Edit {6} ({1}, {2}, {3}) 0x{4:X} (0x{5:X})", state, x, y, z, id, hue, type);
 			}
 		}
 
-		public static void DeleteStatic( NetState state, PacketReader pvSrc )
+		public static void DeleteStatic(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 				int x = pvSrc.ReadInt16();
 				int y = pvSrc.ReadInt16();
 				int z = pvSrc.ReadInt16();
 				int id = pvSrc.ReadUInt16();
 
-				Console.WriteLine( "God Client: {0}: Delete Static ({1}, {2}, {3}) 0x{4:X}", state, x, y, z, id );
+				Console.WriteLine("God Client: {0}: Delete Static ({1}, {2}, {3}) 0x{4:X}", state, x, y, z, id);
 			}
 		}
 
-		public static void NewAnimData( NetState state, PacketReader pvSrc )
+		public static void NewAnimData(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
-				Console.WriteLine( "God Client: {0}: New tile animation", state );
+				Console.WriteLine("God Client: {0}: New tile animation", state);
 
-				pvSrc.Trace( state );
+				pvSrc.Trace(state);
 			}
 		}
 
-		public static void NewTerrain( NetState state, PacketReader pvSrc )
+		public static void NewTerrain(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
 				int x = pvSrc.ReadInt16();
 				int y = pvSrc.ReadInt16();
@@ -704,15 +700,15 @@ namespace Server.Network
 				int width = pvSrc.ReadInt16();
 				int height = pvSrc.ReadInt16();
 
-				Console.WriteLine( "God Client: {0}: New Terrain ({1}, {2})+({3}, {4}) 0x{5:X4}", state, x, y, width, height, id );
+				Console.WriteLine("God Client: {0}: New Terrain ({1}, {2})+({3}, {4}) 0x{5:X4}", state, x, y, width, height, id);
 			}
 		}
 
-		public static void NewRegion( NetState state, PacketReader pvSrc )
+		public static void NewRegion(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
-				string name = pvSrc.ReadString( 40 );
+				string name = pvSrc.ReadString(40);
 				int unk = pvSrc.ReadInt32();
 				int x = pvSrc.ReadInt16();
 				int y = pvSrc.ReadInt16();
@@ -720,27 +716,27 @@ namespace Server.Network
 				int height = pvSrc.ReadInt16();
 				int zStart = pvSrc.ReadInt16();
 				int zEnd = pvSrc.ReadInt16();
-				string desc = pvSrc.ReadString( 40 );
+				string desc = pvSrc.ReadString(40);
 				int soundFX = pvSrc.ReadInt16();
 				int music = pvSrc.ReadInt16();
 				int nightFX = pvSrc.ReadInt16();
 				int dungeon = pvSrc.ReadByte();
 				int light = pvSrc.ReadInt16();
 
-				Console.WriteLine( "God Client: {0}: New Region '{1}' ('{2}')", state, name, desc );
+				Console.WriteLine("God Client: {0}: New Region '{1}' ('{2}')", state, name, desc);
 			}
 		}
 
-		public static void AccountID( NetState state, PacketReader pvSrc )
+		public static void AccountID(NetState state, PacketReader pvSrc)
 		{
 		}
 
-		public static bool VerifyGC( NetState state )
+		public static bool VerifyGC(NetState state)
 		{
-			if ( state.Mobile == null || state.Mobile.AccessLevel <= AccessLevel.Counselor )
+			if (state.Mobile == null || state.Mobile.AccessLevel <= AccessLevel.Counselor)
 			{
-				if ( state.Running )
-					Console.WriteLine( "Warning: {0}: Player using godclient, disconnecting", state );
+				if (state.Running)
+					Console.WriteLine("Warning: {0}: Player using godclient, disconnecting", state);
 
 				state.Dispose();
 				return false;
@@ -751,183 +747,177 @@ namespace Server.Network
 			}
 		}
 
-		public static void TextCommand( NetState state, PacketReader pvSrc )
+		public static void TextCommand(NetState state, PacketReader pvSrc)
 		{
 			int type = pvSrc.ReadByte();
 			string command = pvSrc.ReadString();
 
 			Mobile m = state.Mobile;
 
-			switch ( type )
+			switch (type)
 			{
 				case 0x00: // Go
-				{
-					if ( VerifyGC( state ) )
 					{
-						try
+						if (VerifyGC(state))
 						{
-							string[] split = command.Split( ' ' );
+							try
+							{
+								string[] split = command.Split(' ');
 
-							int x = Utility.ToInt32( split[0] );
-							int y = Utility.ToInt32( split[1] );
+								int x = Utility.ToInt32(split[0]);
+								int y = Utility.ToInt32(split[1]);
 
-							int z;
+								int z;
 
-							if ( split.Length >= 3 )
-								z = Utility.ToInt32( split[2] );
-							else if ( m.Map != null )
-								z = m.Map.GetAverageZ( x, y );
-							else
-								z = 0;
+								if (split.Length >= 3)
+									z = Utility.ToInt32(split[2]);
+								else if (m.Map != null)
+									z = m.Map.GetAverageZ(x, y);
+								else
+									z = 0;
 
-							m.Location = new Point3D( x, y, z );
+								m.Location = new Point3D(x, y, z);
+							}
+							catch
+							{
+							}
 						}
-						catch
-						{
-						}
-					}
 
-					break;
-				}
-				case 0xC7: // Animate
-				{
-					EventSink.InvokeAnimateRequest( new AnimateRequestEventArgs( m, command ) );
-
-					break;
-				}
-				case 0x24: // Use skill
-				{
-					int skillIndex;
-
-					if ( !int.TryParse( command.Split( ' ' )[0], out skillIndex ) )
 						break;
-
-					Skills.UseSkill( m, skillIndex );
-
-					break;
-				}
-				case 0x43: // Open spellbook
-				{
-					int booktype;
-
-					if ( !int.TryParse( command, out booktype ) )
-						booktype = 1;
-
-					EventSink.InvokeOpenSpellbookRequest( new OpenSpellbookRequestEventArgs( m, booktype ) );
-
-					break;
-				}
-				case 0x27: // Cast spell from book
-				{
-					string[] split = command.Split( ' ' );
-
-					if ( split.Length > 0 )
-					{
-						int spellID = Utility.ToInt32( split[0] ) - 1;
-						int serial = split.Length > 1 ? Utility.ToInt32( split[1] ) : -1;
-
-						EventSink.InvokeCastSpellRequest( new CastSpellRequestEventArgs( m, spellID, World.FindItem( serial ) ) );
 					}
+				case 0xC7: // Animate
+					{
+						EventSink.InvokeAnimateRequest(new AnimateRequestEventArgs(m, command));
 
-					break;
-				}
+						break;
+					}
+				case 0x24: // Use skill
+					{
+						int skillIndex;
+
+						try { skillIndex = Convert.ToInt32(command.Split(' ')[0]); }
+						catch { break; }
+
+						Skills.UseSkill(m, skillIndex);
+
+						break;
+					}
+				case 0x43: // Open spellbook
+					{
+						int booktype;
+
+						try { booktype = Convert.ToInt32(command); }
+						catch { booktype = 1; }
+
+						EventSink.InvokeOpenSpellbookRequest(new OpenSpellbookRequestEventArgs(m, booktype));
+
+						break;
+					}
+				case 0x27: // Cast spell from book
+					{
+						string[] split = command.Split(' ');
+
+						if (split.Length > 0)
+						{
+							int spellID = Utility.ToInt32(split[0]) - 1;
+							int serial = split.Length > 1 ? Utility.ToInt32(split[1]) : -1;
+
+							EventSink.InvokeCastSpellRequest(new CastSpellRequestEventArgs(m, spellID, World.FindItem(serial)));
+						}
+
+						break;
+					}
 				case 0x58: // Open door
-				{
-					EventSink.InvokeOpenDoorMacroUsed( new OpenDoorMacroEventArgs( m ) );
+					{
+						EventSink.InvokeOpenDoorMacroUsed(new OpenDoorMacroEventArgs(m));
 
-					break;
-				}
+						break;
+					}
 				case 0x56: // Cast spell from macro
-				{
-					int spellID = Utility.ToInt32( command ) - 1;
+					{
+						int spellID = Utility.ToInt32(command) - 1;
 
-					EventSink.InvokeCastSpellRequest( new CastSpellRequestEventArgs( m, spellID, null ) );
+						EventSink.InvokeCastSpellRequest(new CastSpellRequestEventArgs(m, spellID, null));
 
-					break;
-				}
+						break;
+					}
 				case 0xF4: // Invoke virtues from macro
-				{
-					int virtueID = Utility.ToInt32( command ) - 1;
+					{
+						int virtueID = Utility.ToInt32(command) - 1;
 
-					EventSink.InvokeVirtueMacroRequest( new VirtueMacroRequestEventArgs( m, virtueID ) );
+						EventSink.InvokeVirtueMacroRequest(new VirtueMacroRequestEventArgs(m, virtueID));
 
-					break;
-				}
-				case 0x2F: // Old scroll double click
-				{
-					/*
-					 * This command is still sent for items 0xEF3 - 0xEF9
-					 *
-					 * Command is one of three, depending on the item ID of the scroll:
-					 * - [scroll serial]
-					 * - [scroll serial] [target serial]
-					 * - [scroll serial] [x] [y] [z]
-					 */
-					break;
-				}
+						break;
+					}
 				default:
-				{
-					Console.WriteLine( "Client: {0}: Unknown text-command type 0x{1:X2}: {2}", state, type, command );
-					break;
-				}
+					{
+						Console.WriteLine("Client: {0}: Unknown text-command type 0x{1:X2}: {2}", state, type, command);
+						break;
+					}
 			}
 		}
 
-		public static void GodModeRequest( NetState state, PacketReader pvSrc )
+		public static void GodModeRequest(NetState state, PacketReader pvSrc)
 		{
-			if ( VerifyGC( state ) )
+			if (VerifyGC(state))
 			{
-				state.Send( new GodModeReply( pvSrc.ReadBoolean() ) );
+				state.Send(new GodModeReply(pvSrc.ReadBoolean()));
 			}
 		}
 
-		public static void AsciiPromptResponse( NetState state, PacketReader pvSrc )
+		public static void AsciiPromptResponse(NetState state, PacketReader pvSrc)
 		{
 			int serial = pvSrc.ReadInt32();
 			int prompt = pvSrc.ReadInt32();
 			int type = pvSrc.ReadInt32();
 			string text = pvSrc.ReadStringSafe();
 
-			if ( text.Length > 128 )
+			if (text.Length > 128)
 				return;
 
 			Mobile from = state.Mobile;
 			Prompt p = from.Prompt;
 
-			if ( p != null && p.Serial == serial && p.Serial == prompt )
+			#region KR
+			if (p != null && p.Serial == serial/*KR && p.Serial == prompt*/)
 			{
 				from.Prompt = null;
 
-				if ( type == 0 )
-					p.OnCancel( from );
+				if (type == 0)
+					p.OnCancel(from);
 				else
-					p.OnResponse( from, text );
+					p.OnResponse(from, text);
 			}
+			from.CloseGump( typeof( PromptGump ) );
+			#endregion KR
 		}
 
-		public static void UnicodePromptResponse( NetState state, PacketReader pvSrc )
+		public static void UnicodePromptResponse(NetState state, PacketReader pvSrc)
 		{
 			int serial = pvSrc.ReadInt32();
 			int prompt = pvSrc.ReadInt32();
 			int type = pvSrc.ReadInt32();
-			string lang = pvSrc.ReadString( 4 );
+			string lang = pvSrc.ReadString(4);
 			string text = pvSrc.ReadUnicodeStringLESafe();
 
-			if ( text.Length > 128 )
+			if (text.Length > 128)
 				return;
 
 			Mobile from = state.Mobile;
 			Prompt p = from.Prompt;
 
-			if ( p != null && p.Serial == serial && p.Serial == prompt )
+			#region KR
+			if ( p != null && p.Serial == serial/*KR && p.Serial == prompt*/ )
 			{
 				from.Prompt = null;
 
-				if ( type == 0 )
-					p.OnCancel( from );
+				if (type == 0)
+					p.OnCancel(from);
 				else
-					p.OnResponse( from, text );
+					p.OnResponse(from, text);
 			}
+			from.CloseGump( typeof( PromptGump ) );
+			#endregion KR
 		}
 
 		public static void MenuResponse( NetState state, PacketReader pvSrc ) {
@@ -941,12 +931,12 @@ namespace Server.Network
 
 			foreach ( IMenu menu in state.Menus ) {
 				if ( menu.Serial == serial ) {
-					state.RemoveMenu( menu );
+					state.RemoveMenu(menu);
 
 					if ( index >= 0 && index < menu.EntryLength ) {
-						menu.OnResponse( state, index );
+						menu.OnResponse(state, index);
 					} else {
-						menu.OnCancel( state );
+						menu.OnCancel(state);
 					}
 
 					break;
@@ -954,65 +944,69 @@ namespace Server.Network
 			}
 		}
 
-		public static void ProfileReq( NetState state, PacketReader pvSrc )
+		public static void ProfileReq(NetState state, PacketReader pvSrc)
 		{
 			int type = pvSrc.ReadByte();
 			Serial serial = pvSrc.ReadInt32();
 
 			Mobile beholder = state.Mobile;
-			Mobile beheld = World.FindMobile( serial );
+			Mobile beheld = World.FindMobile(serial);
 
-			if ( beheld == null )
+			if (beheld == null)
 				return;
 
-			switch ( type )
+			switch (type)
 			{
 				case 0x00: // display request
-				{
-					EventSink.InvokeProfileRequest( new ProfileRequestEventArgs( beholder, beheld ) );
+					{
+						EventSink.InvokeProfileRequest(new ProfileRequestEventArgs(beholder, beheld));
 
-					break;
-				}
+						break;
+					}
 				case 0x01: // edit request
-				{
-					pvSrc.ReadInt16(); // Skip
-					int length = pvSrc.ReadUInt16();
+					{
+						pvSrc.ReadInt16(); // Skip
+						int length = pvSrc.ReadUInt16();
 
-					if ( length > 511 )
-						return;
+						if (length > 511)
+							return;
 
-					string text = pvSrc.ReadUnicodeString( length );
+						string text = pvSrc.ReadUnicodeString(length);
 
-					EventSink.InvokeChangeProfileRequest( new ChangeProfileRequestEventArgs( beholder, beheld, text ) );
+						EventSink.InvokeChangeProfileRequest(new ChangeProfileRequestEventArgs(beholder, beheld, text));
 
-					break;
-				}
+						break;
+					}
 			}
 		}
 
-		public static void Disconnect( NetState state, PacketReader pvSrc )
+		public static void Disconnect(NetState state, PacketReader pvSrc)
 		{
 			int minusOne = pvSrc.ReadInt32();
 		}
 
-		public static void LiftReq( NetState state, PacketReader pvSrc )
+		public static void LiftReq(NetState state, PacketReader pvSrc)
 		{
 			Serial serial = pvSrc.ReadInt32();
 			int amount = pvSrc.ReadUInt16();
-			Item item = World.FindItem( serial );
+			Item item = World.FindItem(serial);
 
 			bool rejected;
 			LRReason reject;
 
-			state.Mobile.Lift( item, amount, out rejected, out reject );
+			state.Mobile.Lift(item, amount, out rejected, out reject);
 		}
 
-		public static void EquipReq( NetState state, PacketReader pvSrc )
+		public static void EquipReq(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
+			#region KR
+			if (from.NetState != null && from.NetState.IsKRClient)
+				from.NetState.Send(new KRDropConfirm());
+			#endregion
 			Item item = from.Holding;
 
-			bool valid = ( item != null && item.HeldBy == from && item.Map == Map.Internal );
+			bool valid = (item != null && item.HeldBy == from && item.Map == Map.Internal);
 
 			from.Holding = null;
 
@@ -1020,19 +1014,19 @@ namespace Server.Network
 				return;
 			}
 
-			pvSrc.Seek( 5, SeekOrigin.Current );
-			Mobile to = World.FindMobile( pvSrc.ReadInt32() );
+			pvSrc.Seek(5, SeekOrigin.Current);
+			Mobile to = World.FindMobile(pvSrc.ReadInt32());
 
-			if ( to == null )
+			if (to == null)
 				to = from;
 
-			if ( !to.AllowEquipFrom( from ) || !to.EquipItem( item ) )
-				item.Bounce( from );
+			if (!to.AllowEquipFrom(from) || !to.EquipItem(item))
+				item.Bounce(from);
 
 			item.ClearBounce();
 		}
 
-		public static void DropReq( NetState state, PacketReader pvSrc )
+		public static void DropReq(NetState state, PacketReader pvSrc)
 		{
 			pvSrc.ReadInt32(); // serial, ignored
 			int x = pvSrc.ReadInt16();
@@ -1040,286 +1034,257 @@ namespace Server.Network
 			int z = pvSrc.ReadSByte();
 			Serial dest = pvSrc.ReadInt32();
 
-			Point3D loc = new Point3D( x, y, z );
+			Point3D loc = new Point3D(x, y, z);
 
 			Mobile from = state.Mobile;
 
-			if ( dest.IsMobile )
-			{
-				from.Drop( World.FindMobile( dest ), loc );
-			}
-			else if ( dest.IsItem )
-			{
-				Item item = World.FindItem( dest );
+			#region Mondain's Legacy
+			bool success = false;
+			Item holding = from.Holding;
 
-				if ( item is BaseMulti && ((BaseMulti)item).AllowsRelativeDrop )
-				{
-					loc.m_X += item.X;
-					loc.m_Y += item.Y;
-					from.Drop( loc );
-				}
-				else
-				{
-					from.Drop( item, loc );
-				}
-			}
+			if (dest.IsMobile)
+				success = from.Drop( World.FindMobile( dest ), loc );
+			else if (dest.IsItem)
+				success = from.Drop( World.FindItem( dest ), loc );
 			else
+				success = from.Drop( loc );
+
+			if ( holding != null )
 			{
-				from.Drop( loc );
+				if ( !success && holding.DupeSource != null )
+				{
+					holding.DupeSource.Amount += holding.Amount;
+					holding.Delete();
+				}
+
+				holding.DupeSource = null;
 			}
+			#endregion
 		}
 
-		public static void DropReq6017( NetState state, PacketReader pvSrc )
+		public static void DropReq6017(NetState state, PacketReader pvSrc)
 		{
-			pvSrc.ReadInt32(); // serial, ignored
+			Serial m_item = pvSrc.ReadInt32(); // serial, ignored
 			int x = pvSrc.ReadInt16();
 			int y = pvSrc.ReadInt16();
 			int z = pvSrc.ReadSByte();
-			pvSrc.ReadByte(); // Grid Location?
+			int m_GridLocation = pvSrc.ReadByte(); // Grid Location?
+			if ( m_item.IsItem && World.FindItem( m_item )!=null)//KR Mod
+			{	
+				World.FindItem(m_item).GridLocation = m_GridLocation;
+			}
+
 			Serial dest = pvSrc.ReadInt32();
 
-			Point3D loc = new Point3D( x, y, z );
+			Point3D loc = new Point3D(x, y, z);
 
 			Mobile from = state.Mobile;
 
-			if ( dest.IsMobile )
-			{
-				from.Drop( World.FindMobile( dest ), loc );
-			}
-			else if ( dest.IsItem )
-			{
-				Item item = World.FindItem( dest );
+			#region Mondain's Legacy
+			bool success = false;
+			Item holding = from.Holding;
 
-				if ( item is BaseMulti && ((BaseMulti)item).AllowsRelativeDrop )
-				{
-					loc.m_X += item.X;
-					loc.m_Y += item.Y;
-					from.Drop( loc );
-				}
-				else
-				{
-					from.Drop( item, loc );
-				}
-			}
+			if (dest.IsMobile)
+				success = from.Drop( World.FindMobile( dest ), loc );
+			else if (dest.IsItem)
+				success = from.Drop( World.FindItem( dest ), loc );
 			else
+				success = from.Drop( loc );
+
+			if ( holding != null )
 			{
-				from.Drop( loc );
+				if ( !success && holding.DupeSource != null )
+				{
+					holding.DupeSource.Amount += holding.Amount;
+					holding.Delete();
+				}
+
+				holding.DupeSource = null;
 			}
+			#endregion
+			state.Send(new KRDropConfirm());
 		}
 
-		public static void ConfigurationFile( NetState state, PacketReader pvSrc )
+		public static void ConfigurationFile(NetState state, PacketReader pvSrc)
 		{
 		}
 
-		public static void LogoutReq( NetState state, PacketReader pvSrc )
+		public static void LogoutReq(NetState state, PacketReader pvSrc)
 		{
-			state.Send( new LogoutAck() );
+			state.Send(new LogoutAck());
 		}
 
-		public static void ChangeSkillLock( NetState state, PacketReader pvSrc )
+		public static void ChangeSkillLock(NetState state, PacketReader pvSrc)
 		{
 			Skill s = state.Mobile.Skills[pvSrc.ReadInt16()];
 
-			if ( s != null )
-				s.SetLockNoRelay( (SkillLock)pvSrc.ReadByte() );
+			if (s != null)
+				s.SetLockNoRelay((SkillLock)pvSrc.ReadByte());
 		}
 
-		public static void HelpRequest( NetState state, PacketReader pvSrc )
+		public static void HelpRequest(NetState state, PacketReader pvSrc)
 		{
-			EventSink.InvokeHelpRequest( new HelpRequestEventArgs( state.Mobile ) );
+			EventSink.InvokeHelpRequest(new HelpRequestEventArgs(state.Mobile));
 		}
 
-		public static void TargetResponse( NetState state, PacketReader pvSrc )
+		public static void TargetResponse(NetState state, PacketReader pvSrc)
 		{
 			int type = pvSrc.ReadByte();
 			int targetID = pvSrc.ReadInt32();
 			int flags = pvSrc.ReadByte();
 			Serial serial = pvSrc.ReadInt32();
 			int x = pvSrc.ReadInt16(), y = pvSrc.ReadInt16(), z = pvSrc.ReadInt16();
-			int graphic = pvSrc.ReadUInt16();
+			int graphic = pvSrc.ReadInt16();
 
-			if ( targetID == unchecked( (int) 0xDEADBEEF ) )
+			if (targetID == unchecked((int)0xDEADBEEF))
 				return;
+			#region KR Italia
+			if ((x == 0) && (y == 0) && (z == 0))
+				return;
+			#endregion
 
 			Mobile from = state.Mobile;
 
 			Target t = from.Target;
 
-			if ( t != null )
+			if (t != null)
 			{
-				TargetProfile prof = TargetProfile.Acquire( t.GetType() );
+				TargetProfile prof = TargetProfile.Acquire(t.GetType());
 
 				if ( prof != null ) {
 					prof.Start();
 				}
 
 				try {
-					if ( x == -1 && y == -1 && !serial.IsValid )
+					if (x == -1 && y == -1 && !serial.IsValid)
 					{
 						// User pressed escape
-						t.Cancel( from, TargetCancelType.Canceled );
-					}
-					else if ( Target.TargetIDValidation && t.TargetID != targetID )
-					{
-						// Sanity, prevent fake target
-						return;
+						t.Cancel(from, TargetCancelType.Canceled);
 					}
 					else
 					{
 						object toTarget;
 
-						if ( type == 1 )
+						if (type == 1)
 						{
-							if ( graphic == 0 )
+							if (graphic == 0)
 							{
-								toTarget = new LandTarget( new Point3D( x, y, z ), from.Map );
+								toTarget = new LandTarget(new Point3D(x, y, z), from.Map);
 							}
 							else
 							{
 								Map map = from.Map;
 
-								if ( map == null || map == Map.Internal )
+								if (map == null || map == Map.Internal)
 								{
-									t.Cancel( from, TargetCancelType.Canceled );
+									t.Cancel(from, TargetCancelType.Canceled);
 									return;
 								}
 								else
 								{
-									StaticTile[] tiles = map.Tiles.GetStaticTiles( x, y, !t.DisallowMultis );
+									Tile[] tiles = map.Tiles.GetStaticTiles(x, y, !t.DisallowMultis);
 
 									bool valid = false;
 
-									if ( state.HighSeas ) {
-										ItemData id = TileData.ItemTable[graphic&TileData.MaxItemValue];
-										if ( id.Surface ) {
-											z -= id.Height;
-										}
-									}
-
-									for ( int i = 0; !valid && i < tiles.Length; ++i )
+									for (int i = 0; !valid && i < tiles.Length; ++i)
 									{
-										if ( tiles[i].Z == z && tiles[i].ID == graphic )
+										#region SA
+										if (tiles[i].Z == z && (tiles[i].ID & 0x7FFF) == (graphic & 0x7FFF))
+										#endregion
 											valid = true;
 									}
 
-									if ( !valid )
+									if (!valid)
 									{
-										t.Cancel( from, TargetCancelType.Canceled );
+										t.Cancel(from, TargetCancelType.Canceled);
 										return;
 									}
 									else
 									{
-										toTarget = new StaticTarget( new Point3D( x, y, z ), graphic );
+										toTarget = new StaticTarget(new Point3D(x, y, z), graphic);
 									}
 								}
 							}
 						}
-						else if ( serial.IsMobile )
+						else if (serial.IsMobile)
 						{
-							toTarget = World.FindMobile( serial );
+							toTarget = World.FindMobile(serial);
 						}
-						else if ( serial.IsItem )
+						else if (serial.IsItem)
 						{
-							toTarget = World.FindItem( serial );
+							toTarget = World.FindItem(serial);
 						}
 						else
 						{
-							t.Cancel( from, TargetCancelType.Canceled );
+							t.Cancel(from, TargetCancelType.Canceled);
 							return;
 						}
 
-						t.Invoke( from, toTarget );
+						t.Invoke(from, toTarget);
 					}
-				} finally {
-					if ( prof != null ) {
+				}finally	{
+					if (prof != null){
 						prof.Finish();
 					}
 				}
 			}
 		}
 
-		public static void DisplayGumpResponse( NetState state, PacketReader pvSrc ) {
+		public static void DisplayGumpResponse(NetState state, PacketReader pvSrc){
 			int serial = pvSrc.ReadInt32();
 			int typeID = pvSrc.ReadInt32();
 			int buttonID = pvSrc.ReadInt32();
 
-			foreach ( Gump gump in state.Gumps ) {
-				if ( gump.Serial == serial && gump.TypeID == typeID ) {
-					var buttonExists = buttonID == 0; // 0 is always 'close'
-
-					if (!buttonExists)
-					{
-						foreach (var e in gump.Entries)
-						{
-							if (e is GumpButton && ((GumpButton)e).ButtonID == buttonID)
-							{
-								buttonExists = true;
-								break;
-							}
-
-							if (e is GumpImageTileButton && ((GumpImageTileButton)e).ButtonID == buttonID)
-							{
-								buttonExists = true;
-								break;
-							}
-						}
-					}
-
-					if (!buttonExists)
-					{
-						state.WriteConsole("Invalid gump response, disconnecting...");
-						state.Dispose();
-						return;
-					}
-
+			foreach (Gump gump in state.Gumps){
+				if (gump.Serial == serial && gump.TypeID == typeID){
 					int switchCount = pvSrc.ReadInt32();
 
-					if ( switchCount < 0 || switchCount > gump.m_Switches ) {
-						state.WriteConsole( "Invalid gump response, disconnecting..." );
+					if (switchCount < 0 || (switchCount > gump.m_Switches && !state.IsKRClient)){
+						state.WriteConsole("Invalid gump response, disconnecting...");
 						state.Dispose();
 						return;
 					}
 
 					int[] switches = new int[switchCount];
 
-					for ( int j = 0; j < switches.Length; ++j )
+					for (int j = 0; j < switches.Length; ++j)
 						switches[j] = pvSrc.ReadInt32();
 
 					int textCount = pvSrc.ReadInt32();
 
-					if ( textCount < 0 || textCount > gump.m_TextEntries ) {
-						state.WriteConsole( "Invalid gump response, disconnecting..." );
+					if (textCount < 0 || textCount > gump.m_TextEntries){
+						state.WriteConsole("Invalid gump response, disconnecting...");
 						state.Dispose();
 						return;
 					}
 
 					TextRelay[] textEntries = new TextRelay[textCount];
 
-					for ( int j = 0; j < textEntries.Length; ++j ) {
+					for (int j = 0; j < textEntries.Length; ++j){
 						int entryID = pvSrc.ReadUInt16();
 						int textLength = pvSrc.ReadUInt16();
 
-						if ( textLength > 239 ) {
-							state.WriteConsole( "Invalid gump response, disconnecting..." );
+						if (textLength > 239){
+							state.WriteConsole("Invalid gump response, disconnecting...");
 							state.Dispose();
 							return;
 						}
 
-						string text = pvSrc.ReadUnicodeStringSafe( textLength );
-						textEntries[j] = new TextRelay( entryID, text );
+						string text = pvSrc.ReadUnicodeStringSafe(textLength);
+						textEntries[j] = new TextRelay(entryID, text);
 					}
 
-					state.RemoveGump( gump );
+					state.RemoveGump(gump);
 
-					GumpProfile prof = GumpProfile.Acquire( gump.GetType() );
+					GumpProfile prof = GumpProfile.Acquire(gump.GetType());
 
-					if ( prof != null ) {
+					if (prof != null){
 						prof.Start();
 					}
 
-					gump.OnResponse( state, new RelayInfo( buttonID, switches, textEntries ) );
+					gump.OnResponse(state, new RelayInfo(buttonID, switches, textEntries));
 
-					if ( prof != null ) {
+					if (prof != null){
 						prof.Finish();
 					}
 
@@ -1327,41 +1292,45 @@ namespace Server.Network
 				}
 			}
 
-			if ( typeID == 461 ) { // Virtue gump
+			if (typeID == 461){ // Virtue gump
 				int switchCount = pvSrc.ReadInt32();
 
-				if ( buttonID == 1 && switchCount > 0 ) {
-					Mobile beheld = World.FindMobile( pvSrc.ReadInt32() );
+				if ((buttonID == 1 && switchCount > 0) || buttonID == 1971)
+				{
+					Mobile beheld = World.FindMobile(pvSrc.ReadInt32());
 
-					if ( beheld != null ) {
-						EventSink.InvokeVirtueGumpRequest( new VirtueGumpRequestEventArgs( state.Mobile, beheld ) );
+					if (beheld != null || state.IsKRClient)
+					{
+						EventSink.InvokeVirtueGumpRequest(new VirtueGumpRequestEventArgs(state.Mobile, state.IsKRClient ? state.Mobile : beheld));
 					}
-				} else {
-					Mobile beheld = World.FindMobile( serial );
+				}
+				else{
+					Mobile beheld = World.FindMobile(serial);
 
-					if ( beheld != null ) {
-						EventSink.InvokeVirtueItemRequest( new VirtueItemRequestEventArgs( state.Mobile, beheld, buttonID ) );
+					if (beheld != null || state.IsKRClient)
+					{
+						EventSink.InvokeVirtueItemRequest(new VirtueItemRequestEventArgs(state.Mobile, state.IsKRClient ? state.Mobile : beheld, buttonID));
 					}
 				}
 			}
 		}
 
-		public static void SetWarMode( NetState state, PacketReader pvSrc )
+		public static void SetWarMode(NetState state, PacketReader pvSrc)
 		{
-			state.Mobile.DelayChangeWarmode( pvSrc.ReadBoolean() );
+			state.Mobile.DelayChangeWarmode(pvSrc.ReadBoolean());
 		}
 
-		public static void Resynchronize( NetState state, PacketReader pvSrc )
+		public static void Resynchronize(NetState state, PacketReader pvSrc)
 		{
 			Mobile m = state.Mobile;
 
-			if ( state.StygianAbyss ) {
-				state.Send( new MobileUpdate( m ) );
-			} else {
+			/*if ( state.IsPost7000 ) {*/
+				state.Send(new MobileUpdate(m));
+				state.Send(new MobileIncoming(m, m));
+			/*} else {
 				state.Send( new MobileUpdateOld( m ) );
-			}
-
-			state.Send(MobileIncoming.Create(state, m, m));
+				state.Send( new MobileIncomingOld( m, m ) );
+			}*/
 
 			m.SendEverything();
 
@@ -1372,7 +1341,7 @@ namespace Server.Network
 
 		private static int[] m_EmptyInts = new int[0];
 
-		public static void AsciiSpeech( NetState state, PacketReader pvSrc )
+		public static void AsciiSpeech(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
@@ -1381,46 +1350,46 @@ namespace Server.Network
 			pvSrc.ReadInt16(); // font
 			string text = pvSrc.ReadStringSafe().Trim();
 
-			if ( text.Length <= 0 || text.Length > 128 )
+			if (text.Length <= 0 || text.Length > 128)
 				return;
 
-			if ( !Enum.IsDefined( typeof( MessageType ), type ) )
+			if (!Enum.IsDefined(typeof(MessageType), type))
 				type = MessageType.Regular;
 
-			from.DoSpeech( text, m_EmptyInts, type, Utility.ClipDyedHue( hue ) );
+			from.DoSpeech(text, m_EmptyInts, type, Utility.ClipDyedHue(hue));
 		}
 
 		private static KeywordList m_KeywordList = new KeywordList();
 
-		public static void UnicodeSpeech( NetState state, PacketReader pvSrc )
+		public static void UnicodeSpeech(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
 			MessageType type = (MessageType)pvSrc.ReadByte();
 			int hue = pvSrc.ReadInt16();
 			pvSrc.ReadInt16(); // font
-			string lang = pvSrc.ReadString( 4 );
+			string lang = pvSrc.ReadString(4);
 			string text;
 
 			bool isEncoded = (type & MessageType.Encoded) != 0;
 			int[] keywords;
 
-			if ( isEncoded )
+			if (isEncoded)
 			{
 				int value = pvSrc.ReadInt16();
 				int count = (value & 0xFFF0) >> 4;
 				int hold = value & 0xF;
 
-				if ( count < 0 || count > 50 )
+				if (count < 0 || count > 50)
 					return;
 
 				KeywordList keyList = m_KeywordList;
 
-				for ( int i = 0; i < count; ++i )
+				for (int i = 0; i < count; ++i)
 				{
 					int speechID;
 
-					if ( (i & 1) == 0 )
+					if ((i & 1) == 0)
 					{
 						hold <<= 8;
 						hold |= pvSrc.ReadByte();
@@ -1434,8 +1403,8 @@ namespace Server.Network
 						hold = value & 0xF;
 					}
 
-					if ( !keyList.Contains( speechID ) )
-						keyList.Add( speechID );
+					if (!keyList.Contains(speechID))
+						keyList.Add(speechID);
 				}
 
 				text = pvSrc.ReadUTF8StringSafe();
@@ -1451,27 +1420,27 @@ namespace Server.Network
 
 			text = text.Trim();
 
-			if ( text.Length <= 0 || text.Length > 128 )
+			if (text.Length <= 0 || text.Length > 128)
 				return;
 
 			type &= ~MessageType.Encoded;
 
-			if ( !Enum.IsDefined( typeof( MessageType ), type ) )
+			if (!Enum.IsDefined(typeof(MessageType), type))
 				type = MessageType.Regular;
 
 			from.Language = lang;
-			from.DoSpeech( text, keywords, type, Utility.ClipDyedHue( hue ) );
+			from.DoSpeech(text, keywords, type, Utility.ClipDyedHue(hue));
 		}
 
-		public static void UseReq( NetState state, PacketReader pvSrc )
+		public static void UseReq(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
-			if (from.AccessLevel >= AccessLevel.Counselor || Core.TickCount - from.NextActionTime >= 0)
+			if (from.AccessLevel >= AccessLevel.Counselor || DateTime.Now >= from.NextActionTime)
 			{
 				int value = pvSrc.ReadInt32();
 
-				if ( (value & ~0x7FFFFFFF) != 0 )
+				if ((value & ~0x7FFFFFFF) != 0)
 				{
 					from.OnPaperdollRequest();
 				}
@@ -1479,23 +1448,23 @@ namespace Server.Network
 				{
 					Serial s = value;
 
-					if ( s.IsMobile )
+					if (s.IsMobile)
 					{
-						Mobile m = World.FindMobile( s );
+						Mobile m = World.FindMobile(s);
 
-						if ( m != null && !m.Deleted )
-							from.Use( m );
+						if (m != null && !m.Deleted)
+							from.Use(m);
 					}
-					else if ( s.IsItem )
+					else if (s.IsItem)
 					{
-						Item item = World.FindItem( s );
+						Item item = World.FindItem(s);
 
-						if ( item != null && !item.Deleted )
-							from.Use( item );
+						if (item != null && !item.Deleted)
+							from.Use(item);
 					}
 				}
 
-				from.NextActionTime = Core.TickCount + Mobile.ActionDelay;
+				from.NextActionTime = DateTime.Now + TimeSpan.FromSeconds(0.5);
 			}
 			else
 			{
@@ -1507,78 +1476,83 @@ namespace Server.Network
 
 		public static bool SingleClickProps
 		{
-			get{ return m_SingleClickProps; }
-			set{ m_SingleClickProps = value; }
+			get { return m_SingleClickProps; }
+			set { m_SingleClickProps = value; }
 		}
 
-		public static void LookReq( NetState state, PacketReader pvSrc )
+		public static void LookReq(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
 			Serial s = pvSrc.ReadInt32();
 
-			if ( s.IsMobile )
+			if (s.IsMobile)
 			{
-				Mobile m = World.FindMobile( s );
+				Mobile m = World.FindMobile(s);
 
-				if ( m != null && from.CanSee( m ) && Utility.InUpdateRange( from, m ) )
+				if (m != null && from.CanSee(m) && Utility.InUpdateRange(from, m))
 				{
-					if ( m_SingleClickProps )
-					{
-						m.OnAosSingleClick( from );
-					}
+					/*if (m_SingleClickProps)
+					{*/
+						#region Mondain's Legacy
+						if (m.ShowIncomingName(from))
+						#endregion
+
+							m.OnAosSingleClick(from);
+					/*}
 					else
 					{
-						if ( from.Region.OnSingleClick( from, m ) )
-							m.OnSingleClick( from );
-					}
+						if (from.Region.OnSingleClick(from, m))
+							m.OnSingleClick(from);
+					}*/
 				}
 			}
-			else if ( s.IsItem )
+			else if (s.IsItem)
 			{
-				Item item = World.FindItem( s );
+				Item item = World.FindItem(s);
 
-				if ( item != null && !item.Deleted && from.CanSee( item ) && Utility.InUpdateRange( from.Location, item.GetWorldLocation() ) )
+				if (item != null && !item.Deleted && from.CanSee(item) && Utility.InUpdateRange(from.Location, item.GetWorldLocation()))
 				{
-					if ( m_SingleClickProps )
+					/*if (m_SingleClickProps)
+					{*/
+						item.OnAosSingleClick(from);
+					/*}
+					else if (from.Region.OnSingleClick(from, item))
 					{
-						item.OnAosSingleClick( from );
-					}
-					else if ( from.Region.OnSingleClick( from, item ) )
-					{
-						if ( item.Parent is Item )
-							((Item)item.Parent).OnSingleClickContained( from, item );
+						if (item.Parent is Item)
+							((Item)item.Parent).OnSingleClickContained(from, item);
 
-						item.OnSingleClick( from );
-					}
+						item.OnSingleClick(from);
+					}*/
 				}
 			}
 		}
 
-		public static void PingReq( NetState state, PacketReader pvSrc )
+		public static void PingReq(NetState state, PacketReader pvSrc)
 		{
-			state.Send( PingAck.Instantiate( pvSrc.ReadByte() ) );
+			state.Send(PingAck.Instantiate(pvSrc.ReadByte()));
 		}
 
-		public static void SetUpdateRange( NetState state, PacketReader pvSrc )
+		public static void SetUpdateRange(NetState state, PacketReader pvSrc)
 		{
-			state.Send( ChangeUpdateRange.Instantiate( 18 ) );
+			state.Send(ChangeUpdateRange.Instantiate(18));
 		}
 
-		private const int BadFood = unchecked( (int)0xBAADF00D );
-		private const int BadUOTD = unchecked( (int)0xFFCEFFCE );
+		private const int BadFood = unchecked((int)0xBAADF00D);
+		private const int BadUOTD = unchecked((int)0xFFCEFFCE);
 
-		public static void MovementReq( NetState state, PacketReader pvSrc )
+		public static void MovementReq(NetState state, PacketReader pvSrc)
 		{
 			Direction dir = (Direction)pvSrc.ReadByte();
+
 			int seq = pvSrc.ReadByte();
 			int key = pvSrc.ReadInt32();
 
 			Mobile m = state.Mobile;
 
-			if ( (state.Sequence == 0 && seq != 0) || !m.Move( dir ) )
+			if ((state.Sequence == 0 && seq != 0) || !m.Move(dir))
 			{
-				state.Send( new MovementRej( seq, m ) );
+				state.Send(new MovementRej(seq, m));
 				state.Sequence = 0;
 
 				m.ClearFastwalkStack();
@@ -1587,7 +1561,7 @@ namespace Server.Network
 			{
 				++seq;
 
-				if ( seq == 256 )
+				if (seq == 256)
 					seq = 1;
 
 				state.Sequence = seq;
@@ -1609,251 +1583,218 @@ namespace Server.Network
 				128
 			};
 
-		public static int[] ValidAnimations{ get{ return m_ValidAnimations; } set{ m_ValidAnimations = value; } }
+		public static int[] ValidAnimations { get { return m_ValidAnimations; } set { m_ValidAnimations = value; } }
 
-		public static void Animate( NetState state, PacketReader pvSrc )
+		public static void Animate(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 			int action = pvSrc.ReadInt32();
 
 			bool ok = false;
 
-			for ( int i = 0; !ok && i < m_ValidAnimations.Length; ++i )
-				ok = ( action == m_ValidAnimations[i] );
+			for (int i = 0; !ok && i < m_ValidAnimations.Length; ++i)
+				ok = (action == m_ValidAnimations[i]);
 
-			if ( from != null && ok && from.Alive && from.Body.IsHuman && !from.Mounted )
-				from.Animate( action, 7, 1, true, false, 0 );
+			if (from != null && ok && from.Alive && from.Body.IsHuman && !from.Mounted)
+				from.Animate(action, 7, 1, true, false, 0);
 		}
 
-		public static void QuestArrow( NetState state, PacketReader pvSrc )
+		public static void QuestArrow(NetState state, PacketReader pvSrc)
 		{
 			bool rightClick = pvSrc.ReadBoolean();
 			Mobile from = state.Mobile;
 
-			if ( from != null && from.QuestArrow != null )
-				from.QuestArrow.OnClick( rightClick );
+			if (from != null && from.QuestArrow != null)
+				from.QuestArrow.OnClick(rightClick);
 		}
 
-		public static void ExtendedCommand( NetState state, PacketReader pvSrc )
+		public static void ExtendedCommand(NetState state, PacketReader pvSrc)
 		{
 			int packetID = pvSrc.ReadUInt16();
 
-			PacketHandler ph = GetExtendedHandler( packetID );
+			PacketHandler ph = GetExtendedHandler(packetID);
 
-			if ( ph != null )
+			if (ph != null)
 			{
-				if ( ph.Ingame && state.Mobile == null )
+				if (ph.Ingame && state.Mobile == null)
 				{
-					Console.WriteLine( "Client: {0}: Sent ingame packet (0xBFx{1:X2}) before having been attached to a mobile", state, packetID );
+					Console.WriteLine("Client: {0}: Sent ingame packet (0xBFx{1:X2}) before having been attached to a mobile", state, packetID);
 					state.Dispose();
 				}
-				else if ( ph.Ingame && state.Mobile.Deleted )
+				else if (ph.Ingame && state.Mobile.Deleted)
 				{
 					state.Dispose();
 				}
 				else
 				{
-					ph.OnReceive( state, pvSrc );
+					ph.OnReceive(state, pvSrc);
 				}
 			}
 			else
 			{
-				pvSrc.Trace( state );
+				pvSrc.Trace(state);
 			}
 		}
 
-		public static void CastSpell( NetState state, PacketReader pvSrc )
-		{
-			Mobile from = state.Mobile;
-
-			if ( from == null )
-				return;
-
-			Item spellbook = null;
-
-			if ( pvSrc.ReadInt16() == 1 )
-				spellbook = World.FindItem( pvSrc.ReadInt32() );
-
-			int spellID = pvSrc.ReadInt16() - 1;
-
-			EventSink.InvokeCastSpellRequest( new CastSpellRequestEventArgs( from, spellID, spellbook ) );
-		}
-
-		public static void BandageTarget(NetState state, PacketReader pvSrc)
+		public static void CastSpell(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
 			if (from == null)
 				return;
 
-			if (from.AccessLevel >= AccessLevel.Counselor || Core.TickCount - from.NextActionTime >= 0)
-			{
-				Item bandage = World.FindItem(pvSrc.ReadInt32());
+			Item spellbook = null;
 
-				if (bandage == null)
-					return;
+			if (pvSrc.ReadInt16() == 1)
+				spellbook = World.FindItem(pvSrc.ReadInt32());
 
-				Mobile target = World.FindMobile(pvSrc.ReadInt32());
+			int spellID = pvSrc.ReadInt16() - 1;
 
-				if (target == null)
-					return;
-
-				EventSink.InvokeBandageTargetRequest(new BandageTargetRequestEventArgs(from, bandage, target));
-
-				from.NextActionTime = Core.TickCount + Mobile.ActionDelay;
-			}
-			else
-			{
-				from.SendActionMessage();
-			}
+			EventSink.InvokeCastSpellRequest(new CastSpellRequestEventArgs(from, spellID, spellbook));
 		}
 
-		public static void ToggleFlying(NetState state, PacketReader pvSrc)
+		public static void BatchQueryProperties(NetState state, PacketReader pvSrc)
 		{
-			state.Mobile.ToggleFlying();
-		}
-		public static void BatchQueryProperties( NetState state, PacketReader pvSrc )
-		{
-			if ( !ObjectPropertyList.Enabled )
+			if (!ObjectPropertyList.Enabled)
 				return;
 
 			Mobile from = state.Mobile;
 
-			int length = pvSrc.Size-3;
+			int length = pvSrc.Size - 3;
 
-			if ( length < 0 || (length%4) != 0 )
+			if (length < 0 || (length % 4) != 0)
 				return;
 
-			int count = length/4;
+			int count = length / 4;
 
-			for ( int i = 0; i < count; ++i )
+			for (int i = 0; i < count; ++i)
 			{
 				Serial s = pvSrc.ReadInt32();
 
-				if ( s.IsMobile )
+				if (s.IsMobile)
 				{
-					Mobile m = World.FindMobile( s );
+					Mobile m = World.FindMobile(s);
 
-					if ( m != null && from.CanSee( m ) && Utility.InUpdateRange( from, m ) )
-						m.SendPropertiesTo( from );
+					if (m != null && from.CanSee(m) && Utility.InUpdateRange(from, m))
+						m.SendPropertiesTo(from);
 				}
-				else if ( s.IsItem )
+				else if (s.IsItem)
 				{
-					Item item = World.FindItem( s );
+					Item item = World.FindItem(s);
 
-					if ( item != null && !item.Deleted && from.CanSee( item ) && Utility.InUpdateRange( from.Location, item.GetWorldLocation() ) )
-						item.SendPropertiesTo( from );
+					if (item != null && !item.Deleted && from.CanSee(item) && Utility.InUpdateRange(from.Location, item.GetWorldLocation()))
+						item.SendPropertiesTo(from);
 				}
 			}
 		}
 
-		public static void QueryProperties( NetState state, PacketReader pvSrc )
+		public static void QueryProperties(NetState state, PacketReader pvSrc)
 		{
-			if ( !ObjectPropertyList.Enabled )
+			if (!ObjectPropertyList.Enabled)
 				return;
 
 			Mobile from = state.Mobile;
 
 			Serial s = pvSrc.ReadInt32();
 
-			if ( s.IsMobile )
+			if (s.IsMobile)
 			{
-				Mobile m = World.FindMobile( s );
+				Mobile m = World.FindMobile(s);
 
-				if ( m != null && from.CanSee( m ) && Utility.InUpdateRange( from, m ) )
-					m.SendPropertiesTo( from );
+				if (m != null && from.CanSee(m) && Utility.InUpdateRange(from, m))
+					m.SendPropertiesTo(from);
 			}
-			else if ( s.IsItem )
+			else if (s.IsItem)
 			{
-				Item item = World.FindItem( s );
+				Item item = World.FindItem(s);
 
-				if ( item != null && !item.Deleted && from.CanSee( item ) && Utility.InUpdateRange( from.Location, item.GetWorldLocation() ) )
-					item.SendPropertiesTo( from );
+				if (item != null && !item.Deleted && from.CanSee(item) && Utility.InUpdateRange(from.Location, item.GetWorldLocation()))
+					item.SendPropertiesTo(from);
 			}
 		}
 
-		public static void PartyMessage( NetState state, PacketReader pvSrc )
+		public static void PartyMessage(NetState state, PacketReader pvSrc)
 		{
-			if ( state.Mobile == null )
+			if (state.Mobile == null)
 				return;
 
-			switch ( pvSrc.ReadByte() )
+			switch (pvSrc.ReadByte())
 			{
-				case 0x01: PartyMessage_AddMember( state, pvSrc ); break;
-				case 0x02: PartyMessage_RemoveMember( state, pvSrc ); break;
-				case 0x03: PartyMessage_PrivateMessage( state, pvSrc ); break;
-				case 0x04: PartyMessage_PublicMessage( state, pvSrc ); break;
-				case 0x06: PartyMessage_SetCanLoot( state, pvSrc ); break;
-				case 0x08: PartyMessage_Accept( state, pvSrc ); break;
-				case 0x09: PartyMessage_Decline( state, pvSrc ); break;
-				default: pvSrc.Trace( state ); break;
+				case 0x01: PartyMessage_AddMember(state, pvSrc); break;
+				case 0x02: PartyMessage_RemoveMember(state, pvSrc); break;
+				case 0x03: PartyMessage_PrivateMessage(state, pvSrc); break;
+				case 0x04: PartyMessage_PublicMessage(state, pvSrc); break;
+				case 0x06: PartyMessage_SetCanLoot(state, pvSrc); break;
+				case 0x08: PartyMessage_Accept(state, pvSrc); break;
+				case 0x09: PartyMessage_Decline(state, pvSrc); break;
+				default: pvSrc.Trace(state); break;
 			}
 		}
 
-		public static void PartyMessage_AddMember( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_AddMember(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnAdd( state.Mobile );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnAdd(state.Mobile);
 		}
 
-		public static void PartyMessage_RemoveMember( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_RemoveMember(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnRemove( state.Mobile, World.FindMobile( pvSrc.ReadInt32() ) );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnRemove(state.Mobile, World.FindMobile(pvSrc.ReadInt32()));
 		}
 
-		public static void PartyMessage_PrivateMessage( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_PrivateMessage(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnPrivateMessage( state.Mobile, World.FindMobile( pvSrc.ReadInt32() ), pvSrc.ReadUnicodeStringSafe() );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnPrivateMessage(state.Mobile, World.FindMobile(pvSrc.ReadInt32()), pvSrc.ReadUnicodeStringSafe());
 		}
 
-		public static void PartyMessage_PublicMessage( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_PublicMessage(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnPublicMessage( state.Mobile, pvSrc.ReadUnicodeStringSafe() );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnPublicMessage(state.Mobile, pvSrc.ReadUnicodeStringSafe());
 		}
 
-		public static void PartyMessage_SetCanLoot( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_SetCanLoot(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnSetCanLoot( state.Mobile, pvSrc.ReadBoolean() );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnSetCanLoot(state.Mobile, pvSrc.ReadBoolean());
 		}
 
-		public static void PartyMessage_Accept( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_Accept(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnAccept( state.Mobile, World.FindMobile( pvSrc.ReadInt32() ) );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnAccept(state.Mobile, World.FindMobile(pvSrc.ReadInt32()));
 		}
 
-		public static void PartyMessage_Decline( NetState state, PacketReader pvSrc )
+		public static void PartyMessage_Decline(NetState state, PacketReader pvSrc)
 		{
-			if ( PartyCommands.Handler != null )
-				PartyCommands.Handler.OnDecline( state.Mobile, World.FindMobile( pvSrc.ReadInt32() ) );
+			if (PartyCommands.Handler != null)
+				PartyCommands.Handler.OnDecline(state.Mobile, World.FindMobile(pvSrc.ReadInt32()));
 		}
 
-		public static void StunRequest( NetState state, PacketReader pvSrc )
+		public static void StunRequest(NetState state, PacketReader pvSrc)
 		{
-			EventSink.InvokeStunRequest( new StunRequestEventArgs( state.Mobile ) );
+			EventSink.InvokeStunRequest(new StunRequestEventArgs(state.Mobile));
 		}
 
-		public static void DisarmRequest( NetState state, PacketReader pvSrc )
+		public static void DisarmRequest(NetState state, PacketReader pvSrc)
 		{
-			EventSink.InvokeDisarmRequest( new DisarmRequestEventArgs( state.Mobile ) );
+			EventSink.InvokeDisarmRequest(new DisarmRequestEventArgs(state.Mobile));
 		}
 
-		public static void StatLockChange( NetState state, PacketReader pvSrc )
+		public static void StatLockChange(NetState state, PacketReader pvSrc)
 		{
 			int stat = pvSrc.ReadByte();
 			int lockValue = pvSrc.ReadByte();
 
-			if ( lockValue > 2 ) lockValue = 0;
+			if (lockValue > 2) lockValue = 0;
 
 			Mobile m = state.Mobile;
 
-			if ( m != null )
+			if (m != null)
 			{
-				switch ( stat )
+				switch (stat)
 				{
 					case 0: m.StrLock = (StatLockType)lockValue; break;
 					case 1: m.DexLock = (StatLockType)lockValue; break;
@@ -1862,49 +1803,49 @@ namespace Server.Network
 			}
 		}
 
-		public static void ScreenSize( NetState state, PacketReader pvSrc )
+		public static void ScreenSize(NetState state, PacketReader pvSrc)
 		{
 			int width = pvSrc.ReadInt32();
 			int unk = pvSrc.ReadInt32();
 		}
 
-		public static void ContextMenuResponse( NetState state, PacketReader pvSrc )
+		public static void ContextMenuResponse(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
-			if ( from != null )
+			if (from != null)
 			{
 				ContextMenu menu = from.ContextMenu;
 
 				from.ContextMenu = null;
 
-				if ( menu != null && from != null && from == menu.From )
+				if (menu != null && from != null && from == menu.From)
 				{
-					IEntity entity = World.FindEntity( pvSrc.ReadInt32() );
+					IEntity entity = World.FindEntity(pvSrc.ReadInt32());
 
-					if ( entity != null && entity == menu.Target && from.CanSee( entity ) )
+					if (entity != null && entity == menu.Target && from.CanSee(entity))
 					{
 						Point3D p;
 
-						if ( entity is Mobile )
+						if (entity is Mobile)
 							p = entity.Location;
-						else if ( entity is Item )
+						else if (entity is Item)
 							p = ((Item)entity).GetWorldLocation();
 						else
 							return;
 
 						int index = pvSrc.ReadUInt16();
 
-						if ( index >= 0 && index < menu.Entries.Length )
+						if (index >= 0 && index < menu.Entries.Length)
 						{
 							ContextMenuEntry e = menu.Entries[index];
 
 							int range = e.Range;
 
-							if ( range == -1 )
+							if (range == -1)
 								range = 18;
 
-							if ( e.Enabled && from.InRange( p, range ) )
+							if (e.Enabled && from.InRange(p, range))
 								e.OnClick();
 						}
 					}
@@ -1912,34 +1853,34 @@ namespace Server.Network
 			}
 		}
 
-		public static void ContextMenuRequest( NetState state, PacketReader pvSrc )
+		public static void ContextMenuRequest(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
-			IEntity target = World.FindEntity( pvSrc.ReadInt32() );
+			IEntity target = World.FindEntity(pvSrc.ReadInt32());
 
-			if ( from != null && target != null && from.Map == target.Map && from.CanSee( target ) )
+			if (from != null && target != null && from.Map == target.Map && from.CanSee(target))
 			{
-				if ( target is Mobile && !Utility.InUpdateRange( from.Location, target.Location ) )
+				if (target is Mobile && !Utility.InUpdateRange(from.Location, target.Location))
 					return;
-				else if ( target is Item && !Utility.InUpdateRange( from.Location, ((Item)target).GetWorldLocation() ) )
-					return;
-
-				if ( !from.CheckContextMenuDisplay( target ) )
+				else if (target is Item && !Utility.InUpdateRange(from.Location, ((Item)target).GetWorldLocation()))
 					return;
 
-				ContextMenu c = new ContextMenu( from, target );
+				if (!from.CheckContextMenuDisplay(target))
+					return;
 
-				if ( c.Entries.Length > 0 )
+				ContextMenu c = new ContextMenu(from, target);
+
+				if (c.Entries.Length > 0)
 				{
-					if ( target is Item )
+					if (target is Item)
 					{
 						object root = ((Item)target).RootParent;
 
-						if ( root is Mobile && root != from && ((Mobile)root).AccessLevel >= from.AccessLevel )
+						if (root is Mobile && root != from && ((Mobile)root).AccessLevel >= from.AccessLevel)
 						{
-							for ( int i = 0; i < c.Entries.Length; ++i )
+							for (int i = 0; i < c.Entries.Length; ++i)
 							{
-								if ( !c.Entries[i].NonLocalUse )
+								if (!c.Entries[i].NonLocalUse)
 									c.Entries[i].Enabled = false;
 							}
 						}
@@ -1950,91 +1891,69 @@ namespace Server.Network
 			}
 		}
 
-		public static void CloseStatus( NetState state, PacketReader pvSrc )
+		public static void CloseStatus(NetState state, PacketReader pvSrc)
 		{
 			Serial serial = pvSrc.ReadInt32();
 		}
 
-		public static void Language( NetState state, PacketReader pvSrc )
+		public static void Language(NetState state, PacketReader pvSrc)
 		{
-			string lang = pvSrc.ReadString( 4 );
+			string lang = pvSrc.ReadString(4);
 
-			if ( state.Mobile != null )
+			if (state.Mobile != null)
 				state.Mobile.Language = lang;
 		}
 
-		public static void AssistVersion( NetState state, PacketReader pvSrc )
+		public static void AssistVersion(NetState state, PacketReader pvSrc)
 		{
 			int unk = pvSrc.ReadInt32();
 			string av = pvSrc.ReadString();
 		}
 
-		public static void ClientVersion( NetState state, PacketReader pvSrc )
+		public static void ClientVersion(NetState state, PacketReader pvSrc)
 		{
-			CV version = state.Version = new CV( pvSrc.ReadString() );
+			CV version = state.Version = new CV(pvSrc.ReadString());
 
-			EventSink.InvokeClientVersionReceived( new ClientVersionReceivedArgs( state, version ) );
+			EventSink.InvokeClientVersionReceived(new ClientVersionReceivedArgs(state, version));
 		}
 
-		public static void ClientType( NetState state, PacketReader pvSrc )
-		{
-			pvSrc.ReadUInt16();
-
-			int type = pvSrc.ReadUInt16();
-			CV version = state.Version = new CV( pvSrc.ReadString() );
-
-			//EventSink.InvokeClientVersionReceived( new ClientVersionReceivedArgs( state, version ) );//todo
-		}
-
-		public static void MobileQuery( NetState state, PacketReader pvSrc )
+		public static void MobileQuery(NetState state, PacketReader pvSrc)
 		{
 			Mobile from = state.Mobile;
 
 			pvSrc.ReadInt32(); // 0xEDEDEDED
 			int type = pvSrc.ReadByte();
-			Mobile m = World.FindMobile( pvSrc.ReadInt32() );
+			Mobile m = World.FindMobile(pvSrc.ReadInt32());
 
-			if ( m != null )
+			if (m != null)
 			{
-				switch ( type )
+				switch (type)
 				{
 					case 0x00: // Unknown, sent by godclient
-					{
-						if ( VerifyGC( state ) )
-							Console.WriteLine( "God Client: {0}: Query 0x{1:X2} on {2} '{3}'", state, type, m.Serial, m.Name );
+						{
+							if (VerifyGC(state))
+								Console.WriteLine("God Client: {0}: Query 0x{1:X2} on {2} '{3}'", state, type, m.Serial, m.Name);
 
-						break;
-					}
+							break;
+						}
 					case 0x04: // Stats
-					{
-						m.OnStatsQuery( from );
-						break;
-					}
+						{
+							m.OnStatsQuery(from);
+							break;
+						}
 					case 0x05:
-					{
-						m.OnSkillsQuery( from );
-						break;
-					}
+						{
+							m.OnSkillsQuery(from);
+							break;
+						}
 					default:
-					{
-						pvSrc.Trace( state );
-						break;
-					}
+						{
+							pvSrc.Trace(state);
+							break;
+						}
 				}
 			}
 		}
-
-		public delegate void PlayCharCallback( NetState state, bool val );
-
-		public static PlayCharCallback ThirdPartyAuthCallback = null, ThirdPartyHackedCallback = null;
-
-		private static byte[] m_ThirdPartyAuthKey = new byte[] 
-			{ 
-				0x9, 0x11, 0x83, (byte)'+', 0x4, 0x17, 0x83, 
-				0x5, 0x24, 0x85, 
-				0x7, 0x17, 0x87, 
-				0x6, 0x19, 0x88,
-			};
 
 		private class LoginTimer : Timer
 		{
@@ -2049,69 +1968,35 @@ namespace Server.Network
 
 			protected override void OnTick()
 			{
-				if ( m_State == null )
+				if (m_State == null)
 					Stop();
 				if ( m_State.Version != null )
 				{
 					m_State.BlockAllPackets = false;
-					DoLogin( m_State, m_Mobile );
+					DoLogin(m_State, m_Mobile);
 					Stop();
 				}
 			}
 		}
 
-		public static void PlayCharacter( NetState state, PacketReader pvSrc )
+		public static void PlayCharacter(NetState state, PacketReader pvSrc)
 		{
-			pvSrc.ReadInt32(); // 0xEDEDEDED
+			#region K 2D Loader
+			int IsUsingLoader = pvSrc.ReadInt32(); // 0xEDEDEDED
+			#endregion
 
-			string name = pvSrc.ReadString( 30 );
+			string name = pvSrc.ReadString(30);
 
-			pvSrc.Seek( 2, SeekOrigin.Current );
+			pvSrc.Seek(2, SeekOrigin.Current);
 			int flags = pvSrc.ReadInt32();
-
-			if ( FeatureProtection.DisabledFeatures != 0 && ThirdPartyAuthCallback != null )
-			{
-				bool authOK = false;
-
-				ulong razorFeatures = (((ulong)pvSrc.ReadUInt32())<<32) | ((ulong)pvSrc.ReadUInt32());
-
-				if ( razorFeatures == (ulong)FeatureProtection.DisabledFeatures )
-				{
-					bool match = true;
-					for ( int i=0; match && i < m_ThirdPartyAuthKey.Length; i++ )
-						match = match && pvSrc.ReadByte() == m_ThirdPartyAuthKey[i];
-						
-					if ( match )
-						authOK = true;
-				}
-                else
-                {
-                    pvSrc.Seek( 16, SeekOrigin.Current );
-                }
-
-				ThirdPartyAuthCallback( state, authOK );
-			}
-			else
-			{
-				pvSrc.Seek( 24, SeekOrigin.Current );
-			}
-
-			if ( ThirdPartyHackedCallback != null )
-			{
-				pvSrc.Seek( -2, SeekOrigin.Current );
-				if ( pvSrc.ReadUInt16() == 0xDEAD )
-					ThirdPartyHackedCallback( state, true );
-			}
-
-			if ( !state.Running )
-				return;
+			pvSrc.Seek(24, SeekOrigin.Current);
 
 			int charSlot = pvSrc.ReadInt32();
 			int clientIP = pvSrc.ReadInt32();
 
 			IAccount a = state.Account;
 
-			if ( a == null || charSlot < 0 || charSlot >= a.Length )
+			if (a == null || charSlot < 0 || charSlot >= a.Length)
 			{
 				state.Dispose();
 			}
@@ -2120,101 +2005,110 @@ namespace Server.Network
 				Mobile m = a[charSlot];
 
 				// Check if anyone is using this account
-				for ( int i = 0; i < a.Length; ++i )
+				for (int i = 0; i < a.Length; ++i)
 				{
 					Mobile check = a[i];
 
-					if ( check != null && check.Map != Map.Internal && check != m )
+					if (check != null && check.Map != Map.Internal && check != m)
 					{
-						Console.WriteLine( "Login: {0}: Account in use", state );
-						state.Send( new PopupMessage( PMMessage.CharInWorld ) );
+						Console.WriteLine("Login: {0}: Account in use", state);
+						state.Send(new PopupMessage(PMMessage.CharInWorld));
 						return;
 					}
 				}
 
-				if ( m == null )
+				if (m == null)
 				{
 					state.Dispose();
 				}
 				else
 				{
-					if ( m.NetState != null )
+					if (m.NetState != null)
 						m.NetState.Dispose();
 
 					NetState.ProcessDisposedQueue();
 
-					state.Send( new ClientVersionReq() );
+					if(!state.IsKRClient)
+						state.Send(new ClientVersionReq());
 
 					state.BlockAllPackets = true;
 
-					state.Flags = (ClientFlags)flags;
+					state.Flags = flags;
 
 					state.Mobile = m;
 					m.NetState = state;
 
-					new LoginTimer( state, m ).Start();
+					new LoginTimer(state, m).Start();
+
+					#region K 2D Loader
+					if (IsUsingLoader != 0x04030201 && !state.IsSAClient)//SA Clients should not be kicked
+						new DisconnectTimer(state, m).Start();
+					#endregion
 				}
 			}
 		}
-
-		public static void DoLogin( NetState state, Mobile m )
+		#region K 2D Loader
+		private class DisconnectTimer : Timer
 		{
-			state.Send( new LoginConfirm( m ) );
+			private NetState m_State;
+			private Mobile m_Mobile;
 
-			if ( m.Map != null )
-				state.Send( new MapChange( m ) );
+			public DisconnectTimer(NetState state, Mobile m)
+				: base(TimeSpan.FromSeconds(15.0))
+			{
+				m_State = state;
+				m_Mobile = m;
+			}
 
-			state.Send( new MapPatches() );
+			protected override void OnTick()
+			{
+				if (m_State == null || m_Mobile == null)
+					return;
 
-			state.Send( SeasonChange.Instantiate( m.GetSeason(), true ) );
+				if (!m_Mobile.Deleted)
+					m_Mobile.SendMessage("You will be kicked for not using the REQUIRED Loader.");
+				m_State.Dispose();
+				Stop();
+			}
+		}
+		#endregion
+		public static void DoLogin(NetState state, Mobile m)
+		{
+			state.Send(new LoginConfirm(m));
 
-			state.Send( SupportedFeatures.Instantiate( state ) );
+			if (m.Map != null)
+				state.Send(new MapChange(m));
+
+			state.Send(new MapPatches());
+
+			state.Send(SeasonChange.Instantiate(m.GetSeason(), true));
+
+			state.Send(SupportedFeatures.Instantiate(state.Account));
 
 			state.Sequence = 0;
 
-			if (state.NewMobileIncoming) {
-				state.Send(new MobileUpdate(m));
-				state.Send(new MobileUpdate(m));
+			/*if ( state.IsPost7000 ) {*/
+			state.Send(new MobileUpdate(m));
+			state.Send(new MobileUpdate(m));
 
-				m.CheckLightLevels(true);
+			m.CheckLightLevels(true);
 
-				state.Send(new MobileUpdate(m));
+			state.Send(new MobileUpdate(m));
 
-				state.Send(new MobileIncoming(m, m));
-				//state.Send( new MobileAttributes( m ) );
-				state.Send(new MobileStatus(m, m));
-				state.Send(Server.Network.SetWarMode.Instantiate(m.Warmode));
+			state.Send(new MobileIncoming(m, m));
+			//state.Send( new MobileAttributes( m ) );
+			state.Send( new MobileStatus( m, m ) );
+			state.Send(Server.Network.SetWarMode.Instantiate(m.Warmode));
 
-				m.SendEverything();
+			m.SendEverything();
 
-				state.Send(SupportedFeatures.Instantiate(state));
-				state.Send(new MobileUpdate(m));
-				//state.Send( new MobileAttributes( m ) );
-				state.Send(new MobileStatus(m, m));
-				state.Send(Server.Network.SetWarMode.Instantiate(m.Warmode));
-				state.Send(new MobileIncoming(m, m));
-			} else if ( state.StygianAbyss ) {
-				state.Send( new MobileUpdate( m ) );
-				state.Send( new MobileUpdate( m ) );
-
-				m.CheckLightLevels( true );
-
-				state.Send( new MobileUpdate( m ) );
-
-				state.Send( new MobileIncomingSA( m, m ) );
-				//state.Send( new MobileAttributes( m ) );
-				state.Send( new MobileStatus( m, m ) );
-				state.Send( Server.Network.SetWarMode.Instantiate( m.Warmode ) );
-
-				m.SendEverything();
-
-				state.Send( SupportedFeatures.Instantiate( state ) );
-				state.Send( new MobileUpdate( m ) );
-				//state.Send( new MobileAttributes( m ) );
-				state.Send( new MobileStatus( m, m ) );
-				state.Send( Server.Network.SetWarMode.Instantiate( m.Warmode ) );
-				state.Send( new MobileIncomingSA( m, m ) );
-			} else {
+			state.Send(SupportedFeatures.Instantiate(state.Account));
+			state.Send(new MobileUpdate(m));
+			//state.Send( new MobileAttributes( m ) );
+			state.Send( new MobileStatus( m, m ) );
+			state.Send(Server.Network.SetWarMode.Instantiate(m.Warmode));
+			state.Send(new MobileIncoming(m, m));
+			/*} else {
 				state.Send( new MobileUpdateOld( m ) );
 				state.Send( new MobileUpdateOld( m ) );
 
@@ -2235,30 +2129,30 @@ namespace Server.Network
 				state.Send( new MobileStatus( m, m ) );
 				state.Send( Server.Network.SetWarMode.Instantiate( m.Warmode ) );
 				state.Send( new MobileIncomingOld( m, m ) );
-			}
+			}*/
 
-			state.Send( LoginComplete.Instance );
-			state.Send( new CurrentTime() );
-			state.Send( SeasonChange.Instantiate( m.GetSeason(), true ) );
-			state.Send( new MapChange( m ) );
+			state.Send(LoginComplete.Instance);
+			state.Send(new CurrentTime());
+			state.Send(SeasonChange.Instantiate(m.GetSeason(), true));
+			state.Send(new MapChange(m));
 
-			EventSink.InvokeLogin( new LoginEventArgs( m ) );
+			EventSink.InvokeLogin(new LoginEventArgs(m));
 
 			m.ClearFastwalkStack();
 		}
 
-		public static void CreateCharacter( NetState state, PacketReader pvSrc )
+		public static void CreateCharacter(NetState state, PacketReader pvSrc)
 		{
 			int unk1 = pvSrc.ReadInt32();
 			int unk2 = pvSrc.ReadInt32();
 			int unk3 = pvSrc.ReadByte();
-			string name = pvSrc.ReadString( 30 );
+			string name = pvSrc.ReadString(30);
 
-			pvSrc.Seek( 2, SeekOrigin.Current );
+			pvSrc.Seek(2, SeekOrigin.Current);
 			int flags = pvSrc.ReadInt32();
-			pvSrc.Seek( 8, SeekOrigin.Current );
+			pvSrc.Seek(8, SeekOrigin.Current);
 			int prof = pvSrc.ReadByte();
-			pvSrc.Seek( 15, SeekOrigin.Current );
+			pvSrc.Seek(15, SeekOrigin.Current);
 
 			//bool female = pvSrc.ReadBoolean();
 
@@ -2266,7 +2160,7 @@ namespace Server.Network
 
 			int str = pvSrc.ReadByte();
 			int dex = pvSrc.ReadByte();
-			int intl= pvSrc.ReadByte();
+			int intl = pvSrc.ReadByte();
 			int is1 = pvSrc.ReadByte();
 			int vs1 = pvSrc.ReadByte();
 			int is2 = pvSrc.ReadByte();
@@ -2276,8 +2170,8 @@ namespace Server.Network
 			int hue = pvSrc.ReadUInt16();
 			int hairVal = pvSrc.ReadInt16();
 			int hairHue = pvSrc.ReadInt16();
-			int hairValf= pvSrc.ReadInt16();
-			int hairHuef= pvSrc.ReadInt16();
+			int hairValf = pvSrc.ReadInt16();
+			int hairHuef = pvSrc.ReadInt16();
 			pvSrc.ReadByte();
 			int cityIndex = pvSrc.ReadByte();
 			int charSlot = pvSrc.ReadInt32();
@@ -2301,39 +2195,39 @@ namespace Server.Network
 
 			Race race = null;
 
-			if ( state.StygianAbyss ) {
+			if ( state.IsPost7000 ) {
 				byte raceID = (byte)(genderRace < 4 ? 0 : ((genderRace / 2) - 1));
 				race = Race.Races[raceID];
 			} else {
 				race = Race.Races[(byte)(genderRace / 2)];
 			}
 
-			if( race == null )
+			if (race == null)
 				race = Race.DefaultRace;
 
 			CityInfo[] info = state.CityInfo;
 			IAccount a = state.Account;
 
-			if ( info == null || a == null || cityIndex < 0 || cityIndex >= info.Length )
+			if (info == null || a == null || cityIndex < 0 || cityIndex >= info.Length)
 			{
 				state.Dispose();
 			}
 			else
 			{
 				// Check if anyone is using this account
-				for ( int i = 0; i < a.Length; ++i )
+				for (int i = 0; i < a.Length; ++i)
 				{
 					Mobile check = a[i];
 
-					if ( check != null && check.Map != Map.Internal )
+					if (check != null && check.Map != Map.Internal)
 					{
-						Console.WriteLine( "Login: {0}: Account in use", state );
-						state.Send( new PopupMessage( PMMessage.CharInWorld ) );
+						Console.WriteLine("Login: {0}: Account in use", state);
+						state.Send(new PopupMessage(PMMessage.CharInWorld));
 						return;
 					}
 				}
 
-				state.Flags = (ClientFlags)flags;
+				state.Flags = flags;
 
 				CharacterCreatedEventArgs args = new CharacterCreatedEventArgs(
 					state, a,
@@ -2350,22 +2244,24 @@ namespace Server.Network
 					hairVal, hairHue,
 					hairValf, hairHuef,
 					prof,
-					race
+					race,
+					0,
+					hue
 					);
 
-				state.Send( new ClientVersionReq() );
+				state.Send(new ClientVersionReq());
 
 				state.BlockAllPackets = true;
 
-				EventSink.InvokeCharacterCreated( args );
+				EventSink.InvokeCharacterCreated(args);
 
 				Mobile m = args.Mobile;
 
-				if ( m != null )
+				if (m != null)
 				{
 					state.Mobile = m;
 					m.NetState = state;
-					new LoginTimer( state, m ).Start();
+					new LoginTimer(state, m).Start();
 				}
 				else
 				{
@@ -2375,24 +2271,260 @@ namespace Server.Network
 			}
 		}
 
-		public static void CreateCharacter70160( NetState state, PacketReader pvSrc )
+		private static bool m_ClientVerification = true;
+
+		public static bool ClientVerification
 		{
-			int unk1 = pvSrc.ReadInt32();
-			int unk2 = pvSrc.ReadInt32();
-			int unk3 = pvSrc.ReadByte();
-			string name = pvSrc.ReadString( 30 );
+			get { return m_ClientVerification; }
+			set { m_ClientVerification = value; }
+		}
 
-			pvSrc.Seek( 2, SeekOrigin.Current );
-			int flags = pvSrc.ReadInt32();
-			pvSrc.Seek( 8, SeekOrigin.Current );
+		internal struct AuthIDPersistence {
+			public DateTime Age;
+			public ClientVersion Version;
+
+			public AuthIDPersistence( ClientVersion v ) {
+				Age = DateTime.Now;
+				Version = v;
+			}
+		}
+
+		private const int m_AuthIDWindowSize = 128;
+		private static Dictionary<int, AuthIDPersistence> m_AuthIDWindow = new Dictionary<int, AuthIDPersistence>( m_AuthIDWindowSize );
+
+		private static int GenerateAuthID( NetState state )
+		{
+			if ( m_AuthIDWindow.Count == m_AuthIDWindowSize ) {
+				int oldestID = 0;
+				DateTime oldest = DateTime.MaxValue;
+
+				foreach ( KeyValuePair<int, AuthIDPersistence> kvp in m_AuthIDWindow ) {
+					if ( kvp.Value.Age < oldest ) {
+						oldestID = kvp.Key;
+						oldest = kvp.Value.Age;
+					}
+				}
+
+				m_AuthIDWindow.Remove( oldestID );
+			}
+
+			int authID;
+
+			do {
+				authID = Utility.Random( 1, int.MaxValue - 1 );
+
+				if ( Utility.RandomBool() )
+					authID |= 1<<31;
+			} while ( m_AuthIDWindow.ContainsKey( authID ) );
+
+			m_AuthIDWindow[authID] = new AuthIDPersistence( state.Version );
+			
+			return authID;
+		}
+
+		public static void GameLogin(NetState state, PacketReader pvSrc)
+		{
+			if (state.SentFirstPacket)
+			{
+				state.Dispose();
+				return;
+			}
+
+			state.SentFirstPacket = true;
+
+			int authID = pvSrc.ReadInt32();
+
+			if ( m_AuthIDWindow.ContainsKey( authID ) ) {
+				AuthIDPersistence ap = m_AuthIDWindow[authID];
+				m_AuthIDWindow.Remove( authID );
+
+				state.Version = ap.Version;
+			}
+			else if ( m_ClientVerification ) {
+				Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", state);
+				state.Dispose();
+				return;
+			}
+			
+			if ( state.m_AuthID != 0 && authID != state.m_AuthID )
+			{
+				Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", state);
+				state.Dispose();
+				return;
+			}
+			else if (state.m_AuthID == 0 && authID != state.m_Seed)
+			{
+				Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", state);
+				state.Dispose();
+				return;
+			}
+
+			string username = pvSrc.ReadString(30);
+			string password = pvSrc.ReadString(30);
+
+			GameLoginEventArgs e = new GameLoginEventArgs(state, username, password);
+
+			EventSink.InvokeGameLogin(e);
+
+			if (e.Accepted)
+			{
+				state.CityInfo = e.CityInfo;
+				state.CompressionEnabled = true;
+
+				if (Core.AOS)
+					state.Send(SupportedFeatures.Instantiate(state.Account));
+
+				state.Send(new CharacterList(state.Account, state.CityInfo));
+			}
+			else
+			{
+				state.Dispose();
+			}
+		}
+
+		public static void PlayServer(NetState state, PacketReader pvSrc)
+		{
+			int index = pvSrc.ReadInt16();
+			ServerInfo[] info = state.ServerInfo;
+			IAccount a = state.Account;
+
+			if (info == null || a == null || index < 0 || index >= info.Length)
+			{
+				state.Dispose();
+			}
+			else
+			{
+				ServerInfo si = info[index];
+
+				#region KR Italia - TP
+				state.Account.IsTPServer = (si.Name.Equals("Requiem") || index == 1);
+//
+				/*if (state.Account.IsTPServer && !state.Account.IsGdREnabled)
+				{
+					state.Dispose();
+					return;
+				}*/
+				#endregion
+				state.m_AuthID = PlayServerAck.m_AuthID = GenerateAuthID( state );
+
+				state.SentFirstPacket = false;
+				state.Send(new PlayServerAck(si));
+			}
+		}
+
+		public static void LoginServerSeed(NetState state, PacketReader pvSrc)
+		{
+			state.m_Seed = pvSrc.ReadInt32();
+			state.Seeded = true;
+
+			if (state.m_Seed == 0)
+			{
+				Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", state);
+				state.Dispose();
+				return;
+			}
+
+			int clientMaj = pvSrc.ReadInt32();
+			int clientMin = pvSrc.ReadInt32();
+			int clientRev = pvSrc.ReadInt32();
+			int clientPat = pvSrc.ReadInt32();
+
+			state.Version = new ClientVersion(clientMaj, clientMin, clientRev, clientPat);
+		}
+
+		public static void AccountLogin(NetState state, PacketReader pvSrc)
+		{
+			if (state.SentFirstPacket)
+			{
+				state.Dispose();
+				return;
+			}
+
+			state.SentFirstPacket = true;
+
+			string username = pvSrc.ReadString(30);
+			string password = pvSrc.ReadString(30);
+
+			AccountLoginEventArgs e = new AccountLoginEventArgs(state, username, password);
+
+			EventSink.InvokeAccountLogin(e);
+
+			if (e.Accepted)
+				AccountLogin_ReplyAck(state);
+			else
+				AccountLogin_ReplyRej(state, e.RejectReason);
+		}
+
+		public static void AccountLogin_ReplyAck(NetState state)
+		{
+			ServerListEventArgs e = new ServerListEventArgs(state, state.Account);
+
+			EventSink.InvokeServerList(e);
+
+			if (e.Rejected)
+			{
+				state.Account = null;
+				state.Send(new AccountLoginRej(ALRReason.BadComm));
+				state.Dispose();
+			}
+			else
+			{
+				ServerInfo[] info = e.Servers.ToArray();
+
+				state.ServerInfo = info;
+
+				state.Send(new AccountLoginAck(info));
+			}
+		}
+
+		public static void AccountLogin_ReplyRej(NetState state, ALRReason reason)
+		{
+			state.Send(new AccountLoginRej(reason));
+			state.Dispose();
+		}
+
+		#region KR
+		// KR Client Signal (Seed)
+		public static void KRSeed(NetState state, PacketReader pvSrc)
+		{
+			// KR Client detected (Maybe Legacy client after 6.0.1.4 too? Still need to check)
+			state.IsKRClient = true;
+            state.Seeded = true;
+			state.Send(new KRVerifier());
+			//Packet always FF FF FF FF
+		}
+
+		// KR Client Verifier Response (We still need to research on this thing)
+		public static void KRVerifierResponse(NetState state, PacketReader pvSrc)
+		{
+		}
+
+		// KR Client Character Creation
+		public static void KRCreateCharacter(NetState state, PacketReader pvSrc)
+		{
+			int flags = ExpansionInfo.CurrentExpansion.SupportedFeatures;
+
+			int length = pvSrc.Size;
+
+			int unk1 = pvSrc.ReadInt32();		// Pattern
+			int charSlot = pvSrc.ReadInt32();
+			string name = pvSrc.ReadString(30);
+			string unknown1 = pvSrc.ReadString(30);
+
 			int prof = pvSrc.ReadByte();
-			pvSrc.Seek( 15, SeekOrigin.Current );
+			byte unk2 = pvSrc.ReadByte();	// Fixed in 0x41
 
-			int genderRace = pvSrc.ReadByte();
+			int gender = pvSrc.ReadByte();
+			int brace = pvSrc.ReadByte();	// Race
 
 			int str = pvSrc.ReadByte();
 			int dex = pvSrc.ReadByte();
-			int intl= pvSrc.ReadByte();
+			int intl = pvSrc.ReadByte();
+
+			int hue = pvSrc.ReadUInt16();
+			int unk5 = pvSrc.ReadInt32(); // 0x00 0x00 0x00 0x00
+			int unk6 = pvSrc.ReadInt32(); // 0x00 0x00 0x00 0x00	
+
 			int is1 = pvSrc.ReadByte();
 			int vs1 = pvSrc.ReadByte();
 			int is2 = pvSrc.ReadByte();
@@ -2402,59 +2534,73 @@ namespace Server.Network
 			int is4 = pvSrc.ReadByte();
 			int vs4 = pvSrc.ReadByte();
 
-			int hue = pvSrc.ReadUInt16();
-			int hairVal = pvSrc.ReadInt16();
+			string unknown2 = pvSrc.ReadString(24); // Pack of 0x00
+			int unk7 = pvSrc.ReadInt16();		// Another 0x00
+
 			int hairHue = pvSrc.ReadInt16();
-			int hairValf= pvSrc.ReadInt16();
-			int hairHuef= pvSrc.ReadInt16();
-			pvSrc.ReadByte();
-			int cityIndex = pvSrc.ReadByte();
-			int charSlot = pvSrc.ReadInt32();
-			int clientIP = pvSrc.ReadInt32();
+			int hairVal = pvSrc.ReadInt16();
+
+			int unk8 = pvSrc.ReadByte();
+			int unk9 = pvSrc.ReadInt32();
+			int unk10 = pvSrc.ReadByte();
 			int shirtHue = pvSrc.ReadInt16();
-			int pantsHue = pvSrc.ReadInt16();
+			int shirtID = pvSrc.ReadInt16();
+			int unk13 = pvSrc.ReadByte();
 
-			/*
-			0x00, 0x01
-			0x02, 0x03 -> Human Male, Human Female
-			0x04, 0x05 -> Elf Male, Elf Female
-			0x05, 0x06 -> Gargoyle Male, Gargoyle Female
-			*/
+			int facecolor = pvSrc.ReadInt16();
+			int face = pvSrc.ReadInt16();
 
-			bool female = ((genderRace % 2) != 0);
+			int b10 = pvSrc.ReadByte();
 
-			Race race = null;
+			int hairHuef = pvSrc.ReadInt16();		// Beard Hue
+			int hairValf = pvSrc.ReadInt16();		// Beard ID
 
-			byte raceID = (byte)(genderRace < 4 ? 0 : ((genderRace / 2) - 1));
-			race = Race.Races[raceID];
-		
-			if( race == null )
-				race = Race.DefaultRace;
+			int cityIndex = 0;// Obsolete
+			int pantsHue = shirtHue;// Obsolete	
+
+			bool female = (gender != 0);
+
+			#region SA
+			Race race;
+			switch (brace)
+			{
+				case 1:
+					race = Race.Human; break;
+				case 2:
+					race = Race.Elf; break;
+				case 3:
+					race = Race.Gargoyle; break;
+				default:
+					race = Race.Human;
+					Console.WriteLine("WARNING: NOT ALLOWED RACE."); break;
+			}
+			#endregion
 
 			CityInfo[] info = state.CityInfo;
 			IAccount a = state.Account;
 
-			if ( info == null || a == null || cityIndex < 0 || cityIndex >= info.Length )
+
+			if (info == null || a == null || cityIndex < 0 || cityIndex >= info.Length)
 			{
 				state.Dispose();
 			}
 			else
 			{
 				// Check if anyone is using this account
-				for ( int i = 0; i < a.Length; ++i )
+				for (int i = 0; i < a.Length; ++i)
 				{
 					Mobile check = a[i];
 
-					if ( check != null && check.Map != Map.Internal )
+					if (check != null && check.Map != Map.Internal)
 					{
-						Console.WriteLine( "Login: {0}: Account in use", state );
-						state.Send( new PopupMessage( PMMessage.CharInWorld ) );
+						Console.WriteLine("Login: {0}: Account in use", state);
+						state.Send(new PopupMessage(PMMessage.CharInWorld));
 						return;
 					}
 				}
 
-				state.Flags = (ClientFlags)flags;
-
+				state.Flags = flags;
+				//state.IsKRClient = true;
 				CharacterCreatedEventArgs args = new CharacterCreatedEventArgs(
 					state, a,
 					name, female, hue,
@@ -2471,22 +2617,24 @@ namespace Server.Network
 					hairVal, hairHue,
 					hairValf, hairHuef,
 					prof,
-					race
+					race,
+					face,
+					facecolor
 					);
-
-				state.Send( new ClientVersionReq() );
 
 				state.BlockAllPackets = true;
 
-				EventSink.InvokeCharacterCreated( args );
+				EventSink.InvokeCharacterCreated(args);
 
 				Mobile m = args.Mobile;
 
-				if ( m != null )
+				if (m != null)
 				{
 					state.Mobile = m;
 					m.NetState = state;
-					new LoginTimer( state, m ).Start();
+
+					state.BlockAllPackets = false;
+					DoLogin(state, m);
 				}
 				else
 				{
@@ -2495,243 +2643,271 @@ namespace Server.Network
 				}
 			}
 		}
-
-		private static bool m_ClientVerification = true;
-
-		public static bool ClientVerification
+		#region Hot bar KR
+		public static void TargetedSpell(NetState ns, PacketReader pvSrc)
 		{
-			get{ return m_ClientVerification; }
-			set{ m_ClientVerification = value; }
+			short spellId = (short)(pvSrc.ReadInt16() - 1);    // zero based;
+			Serial target = pvSrc.ReadInt32();
+			TargetedSpellEventArgs e = new TargetedSpellEventArgs(ns, target, spellId);
+			EventSink.InvokeTargetedSpellCast(e);
 		}
-
-		internal struct AuthIDPersistence {
-			public DateTime Age;
-			public ClientVersion Version;
-
-			public AuthIDPersistence( ClientVersion v ) {
-				Age = DateTime.UtcNow;
-				Version = v;
-			}
-		}
-
-		private const int m_AuthIDWindowSize = 128;
-		private static Dictionary<int, AuthIDPersistence> m_AuthIDWindow = new Dictionary<int, AuthIDPersistence>( m_AuthIDWindowSize );
-
-		private static int GenerateAuthID( NetState state )
-		{			
-			if ( m_AuthIDWindow.Count == m_AuthIDWindowSize ) {
-				int oldestID = 0;
-				DateTime oldest = DateTime.MaxValue;
-
-				foreach ( KeyValuePair<int, AuthIDPersistence> kvp in m_AuthIDWindow ) {
-					if ( kvp.Value.Age < oldest ) {
-						oldestID = kvp.Key;
-						oldest = kvp.Value.Age;
-					}
-				}
-
-				m_AuthIDWindow.Remove( oldestID );
-			}
-			
-			int authID;
-
-			do {
-				authID = Utility.Random( 1, int.MaxValue - 1 );
-
-				if ( Utility.RandomBool() )
-					authID |= 1<<31;
-			} while ( m_AuthIDWindow.ContainsKey( authID ) );
-
-			m_AuthIDWindow[authID] = new AuthIDPersistence( state.Version );
-			
-			return authID;
-		}
-
-		public static void GameLogin( NetState state, PacketReader pvSrc )
+		public static void TargetedItemUse(NetState ns, PacketReader pvSrc)
 		{
-			if ( state.SentFirstPacket )
+			Serial srcItem = pvSrc.ReadInt32();
+			Serial target = pvSrc.ReadInt32();
+			if (srcItem.IsItem)
 			{
-				state.Dispose();
-				return;
-			}
-
-			state.SentFirstPacket = true;
-
-			int authID = pvSrc.ReadInt32();
-
-			if ( m_AuthIDWindow.ContainsKey( authID ) ) {
-				AuthIDPersistence ap = m_AuthIDWindow[authID];
-				m_AuthIDWindow.Remove( authID );
-
-				state.Version = ap.Version;
-			} else if ( m_ClientVerification ) {
-				Console.WriteLine( "Login: {0}: Invalid client detected, disconnecting", state );
-				state.Dispose();
-				return;
-			}
-			
-			if ( state.m_AuthID != 0 && authID != state.m_AuthID )
-			{
-				Console.WriteLine( "Login: {0}: Invalid client detected, disconnecting", state );
-				state.Dispose();
-				return;
-			}
-			else if ( state.m_AuthID == 0 && authID != state.m_Seed )
-			{
-				Console.WriteLine( "Login: {0}: Invalid client detected, disconnecting", state );
-				state.Dispose();
-				return;
-			}
-
-			string username = pvSrc.ReadString( 30 );
-			string password = pvSrc.ReadString( 30 );
-
-			GameLoginEventArgs e = new GameLoginEventArgs( state, username, password );
-
-			EventSink.InvokeGameLogin( e );
-
-			if ( e.Accepted )
-			{
-				state.CityInfo = e.CityInfo;
-				state.CompressionEnabled = true;
-
-				state.Send( SupportedFeatures.Instantiate( state ) );
-
-				if ( state.NewCharacterList ) {
-					state.Send( new CharacterList( state.Account, state.CityInfo ) );
-				} else {
-					state.Send( new CharacterListOld( state.Account, state.CityInfo ) );
-				}
-			}
-			else
-			{
-				state.Dispose();
+				TargetedItemUseEventArgs e = new TargetedItemUseEventArgs(ns, World.FindItem(srcItem), World.FindEntity(target));
+				EventSink.InvokeTargetedItemUse(e);
 			}
 		}
-
-		public static void PlayServer( NetState state, PacketReader pvSrc )
+		public static void TargetedSkillUse(NetState ns, PacketReader pvSrc)
 		{
-			int index = pvSrc.ReadInt16();
-			ServerInfo[] info = state.ServerInfo;
-			IAccount a = state.Account;
-
-			if ( info == null || a == null || index < 0 || index >= info.Length )
-			{
-				state.Dispose();
-			}
-			else
-			{
-				ServerInfo si = info[index];
-
-				state.m_AuthID = PlayServerAck.m_AuthID = GenerateAuthID( state );
-
-				state.SentFirstPacket = false;
-				state.Send( new PlayServerAck( si ) );
-			}
+			short skillId = pvSrc.ReadInt16();
+			Serial target = pvSrc.ReadInt32();
+			TargetedSkillEventArgs e = new TargetedSkillEventArgs(ns, World.FindEntity(target), skillId);
+			EventSink.InvokeTargetedSkillUse(e);
 		}
-
-		public static void LoginServerSeed( NetState state, PacketReader pvSrc )
+		#endregion Hot bar KR
+		#region Equip Unequip Macro
+		public static void EquipMacro(NetState ns, PacketReader pvSrc)
 		{
-			state.m_Seed = pvSrc.ReadInt32();
-			state.Seeded = true;
 
-			if ( state.m_Seed == 0 )
+			int length = pvSrc.Size;
+			int count = pvSrc.ReadByte();
+			List<int> serialList = new List<int>(count);
+
+			for (int i = 0; i < count; ++i)
 			{
-				Console.WriteLine("Login: {0}: Invalid client detected, disconnecting", state);
-				state.Dispose();
-				return;
+				Serial s = pvSrc.ReadInt32();
+				serialList.Add(s);
+
 			}
 
-			int clientMaj = pvSrc.ReadInt32();
-			int clientMin = pvSrc.ReadInt32();
-			int clientRev = pvSrc.ReadInt32();
-			int clientPat = pvSrc.ReadInt32();
+			EquipMacroEventArgs e = new EquipMacroEventArgs(ns, serialList);
+			EventSink.InvokeEquipMacro(e);
 
-			state.Version = new ClientVersion( clientMaj, clientMin, clientRev, clientPat );
+		}
+		public static void UnequipMacro(NetState ns, PacketReader pvSrc)
+		{
+
+			int length = pvSrc.Size;
+			int count = pvSrc.ReadByte();
+			List<int> layers = new List<int>(count);
+
+			for (int i = 0; i < count; ++i)
+			{
+				int s = pvSrc.ReadInt16();
+				layers.Add(s);
+
+			}
+
+			UnequipMacroEventArgs e = new UnequipMacroEventArgs(ns, layers);
+			EventSink.InvokeUnequipMacro(e);
+
+		}
+		#endregion  Equip Unequip Macro
+
+		public static void ReceiveClientIdentifier(NetState state, PacketReader pvSrc)
+		{
+			int length = pvSrc.Size;
+			int always1 = pvSrc.ReadInt16();
+			int clientFlags = pvSrc.ReadInt32();
+			state.IsKRClient = false;
+			state.IsSAClient = false;
+			if (clientFlags == 2)
+			{
+				state.IsKRClient = true;
+				state.Version = new ClientVersion(state.Version.Major, state.Version.Minor, state.Version.Revision, state.Version.Patch, ClientType.KR);
+			}
+			else if (clientFlags == 3)
+			{
+				state.IsSAClient = true;
+				state.Version = new ClientVersion(state.Version.Major, state.Version.Minor, state.Version.Revision, state.Version.Patch, ClientType.SA);
+			}
 		}
 
-		public static void CrashReport(NetState state, PacketReader pvSrc)
+		#region Target By Resource Macro
+		public static void TargetByResourceMacro(NetState ns, PacketReader pvSrc)
+		{
+			Serial serial = pvSrc.ReadInt32();
+			int resourcetype = pvSrc.ReadInt16();
+			if (serial.IsItem)
+			{
+				TargetByResourceMacroEventArgs e = new TargetByResourceMacroEventArgs(ns, World.FindItem(serial), resourcetype);
+				EventSink.InvokeTargetByResourceMacro(e);
+			}
+		}
+		#endregion Target By Resource Macro
+		#region Bug Report
+		public static void BugReport(NetState ns, PacketReader pvSrc)
+		{
+			int length = pvSrc.Size;
+			string language = pvSrc.ReadStringSafe(3);
+			pvSrc.ReadByte();
+			int Category = pvSrc.ReadInt16();
+			string text = pvSrc.ReadUnicodeStringSafe();
+			BugReportEventArgs e = new BugReportEventArgs(ns, Category, language, text);
+			EventSink.InvokeBugReport(e);
+
+		}
+		#endregion Bug Report
+		//08NOV2007 UOKR *** END   ***
+		#region House Gump Response
+		public static void HouseGumpResponse(NetState ns, PacketReader pvSrc)
+		{
+			Serial mobileserial = pvSrc.ReadInt32();
+			Serial houseserial = pvSrc.ReadInt32();
+			int subcommand = pvSrc.ReadInt16();
+			int other = pvSrc.ReadInt32();
+
+			HouseGumpResponseEventArgs e = new HouseGumpResponseEventArgs(ns, mobileserial, houseserial, subcommand, other);
+			EventSink.InvokeHouseGumpResponse(e);
+
+
+		}
+		#endregion House Gump Response
+		public static void ReportUseKRHotbarIcon(NetState ns, PacketReader pvSrc)
+		{
+			int unk1 = pvSrc.ReadInt32();
+			int unk2 = pvSrc.ReadInt16();
+			int type = pvSrc.ReadByte();
+			int unk0 = pvSrc.ReadByte();
+			int serial = pvSrc.ReadReversedInt32();
+			ReportUseKRHotbarIconEventArgs e = new ReportUseKRHotbarIconEventArgs(ns, type, serial);
+			EventSink.InvokeReportUseKRHotbarIcon(e);
+		}
+		public static void RemoveHighlightKRElement(NetState ns, PacketReader pvSrc)
+		{
+			Mobile mobile = World.FindMobile(pvSrc.ReadInt32());
+			int elementid = pvSrc.ReadInt16();
+			Mobile dmobile = World.FindMobile(pvSrc.ReadInt32());
+			int i1 = pvSrc.ReadByte();
+			int i2 = pvSrc.ReadByte();
+
+
+			if (mobile != null && dmobile != null)
+			{
+				RemoveHighlightKRElementEventArgs e = new RemoveHighlightKRElementEventArgs(ns, mobile, elementid, dmobile);
+				EventSink.InvokeRemoveHighlightKRElement(e);
+			}
+		}
+		#endregion
+		#region SA
+		public static void SwitchFlying(NetState ns, PacketReader pvSrc)
+		{
+			int enable = pvSrc.ReadInt16();//Always 1 ?
+			pvSrc.ReadInt32();// always 0 ?
+			//ns.Mobile.IsFlying = !ns.Mobile.IsFlying;
+			ns.Mobile.SwitchFlying();
+		}
+		public static void ClientCrashReport(NetState ns, PacketReader pvSrc)
 		{
 			byte clientMaj = pvSrc.ReadByte();
 			byte clientMin = pvSrc.ReadByte();
 			byte clientRev = pvSrc.ReadByte();
-			byte clientPat = pvSrc.ReadByte();
-
+			byte clientBui = pvSrc.ReadByte();
+			ClientVersion v = new ClientVersion((int)clientMaj, (int)clientMin, (int)clientRev, (int)clientBui, ClientType.SA);
 			ushort x = pvSrc.ReadUInt16();
 			ushort y = pvSrc.ReadUInt16();
 			sbyte z = pvSrc.ReadSByte();
-			byte map = pvSrc.ReadByte();
-
-			string account = pvSrc.ReadString(32);
-			string character = pvSrc.ReadString(32);
-			string ip = pvSrc.ReadString(15);
-
-			int unk1 = pvSrc.ReadInt32();
-			int exception = pvSrc.ReadInt32();
-
-			string process = pvSrc.ReadString(100);
-			string report = pvSrc.ReadString(100);
-
-			pvSrc.ReadByte(); // 0x00
-
-			int offset = pvSrc.ReadInt32();
-
-			int count = (int)pvSrc.ReadByte();
-
-			for (int i = 0; i < count; i++) {
-				int address = pvSrc.ReadInt32();
-			}
-		}
-
-		public static void AccountLogin(NetState state, PacketReader pvSrc)
-		{
-			if ( state.SentFirstPacket )
+			byte MapID = pvSrc.ReadByte();
+			string AccountName = pvSrc.ReadString(32);
+			string CharacterName = pvSrc.ReadString(32);
+			uint ExceptionVal = pvSrc.ReadUInt32();
+			string ProcessName = pvSrc.ReadString(100);
+			string CrashReport = pvSrc.ReadString(100);
+			//280
+			byte zero = pvSrc.ReadByte();
+			uint ExceptionOffset = pvSrc.ReadUInt32();
+			byte AddrCount = pvSrc.ReadByte();
+			List<uint> Addresses = new List<uint>();
+			for (int i = 0; i < AddrCount; i++)
 			{
-				state.Dispose();
-				return;
+				Addresses.Add(pvSrc.ReadUInt32());
 			}
-
-			state.SentFirstPacket = true;
-
-			string username = pvSrc.ReadString( 30 );
-			string password = pvSrc.ReadString( 30 );
-
-			AccountLoginEventArgs e = new AccountLoginEventArgs( state, username, password );
-
-			EventSink.InvokeAccountLogin( e );
-
-			if ( e.Accepted )
-				AccountLogin_ReplyAck( state );
-			else
-				AccountLogin_ReplyRej( state, e.RejectReason );
-		}
-
-		public static void AccountLogin_ReplyAck( NetState state )
-		{
-			ServerListEventArgs e = new ServerListEventArgs( state, state.Account );
-
-			EventSink.InvokeServerList( e );
-
-			if ( e.Rejected )
+			//WriteItDown
+			using (StreamWriter op = new StreamWriter("ClientCrashes.txt",true))
 			{
-				state.Account = null;
-				state.Send( new AccountLoginRej( ALRReason.BadComm ) );
-				state.Dispose();
-			}
-			else
-			{
-				ServerInfo[] info = e.Servers.ToArray();
-
-				state.ServerInfo = info;
-
-				state.Send( new AccountLoginAck( info ) );
+				op.WriteLine("Client Crash Report");
+				op.WriteLine( "===================" );
+				op.WriteLine();
+				op.WriteLine("Report Time: {0}", DateTime.Now);
+				op.WriteLine("Client Version: " + v.ToString());
+				op.WriteLine("Location: ( {0}, {1}, {2} ) - Facet: 0x{3:X}", x, y, z, MapID);
+				op.WriteLine("Account: {0}", AccountName);
+				op.WriteLine("Character: {0}", CharacterName);
+				op.WriteLine("Exception Value: 0x{0:X}", ExceptionVal);
+				op.WriteLine("Process: {0}", ProcessName);
+				op.WriteLine("Report: {0}", CrashReport);
+				op.WriteLine("Fixed Zero: {0}", zero);
+				op.WriteLine("Exception Offset: 0x{0:X}", ExceptionOffset);
+				for (int i = 0; i < Addresses.Count; i++)
+				{
+					op.WriteLine("Address {0} : 0x{1:X}", i+1, Addresses[i]);
+				}
+				op.WriteLine();
 			}
 		}
 
-		public static void AccountLogin_ReplyRej( NetState state, ALRReason reason )
+		public static void EquipLastWeapon(NetState state, IEntity e, EncodedReader reader)
 		{
-			state.Send( new AccountLoginRej( reason ) );
-			state.Dispose();
+			if (state.Mobile != null)
+				state.Mobile.EquipLastWeapon();
 		}
+
+		public static void SAMovementRequest(NetState ns, PacketReader pvSrc)
+		{
+			long Key1, Key2;
+			int x, y, z, seq;
+			int count = pvSrc.ReadByte();//Usually 0x01
+
+			for (int i = 0; i < count; ++i)
+			{
+				Key1 = pvSrc.ReadLong();
+				Key2 = pvSrc.ReadLong();
+				//Console.WriteLine(string.Format("{0} {1}", Key1, Key2));
+				seq = pvSrc.ReadByte();//byte Sequence 
+				Direction dir = (Direction)pvSrc.ReadByte();//byte Direction 
+				uint Speed = pvSrc.ReadUInt32();//dword IsRunning
+				x = pvSrc.ReadInt32();//dword X 
+				y = pvSrc.ReadInt32();//dword Y 
+				z = pvSrc.ReadInt32();//dword Z 
+
+				if (Speed == 2)//Running
+					dir |= Direction.Running;
+
+				Mobile m = ns.Mobile;
+
+				if ((ns.Sequence == 0 && seq != 0) || !m.Move(dir, new Point3D(x, y, z)))
+				{
+					if ((m.GetPacketFlags() & 0x01) == 0)//Not flagged
+						ns.Send(new MovementRej(seq, m));
+					ns.Sequence = 0;
+					m.ClearFastwalkStack();
+				}
+				else
+				{
+					++ns.Sequence;
+
+					if (ns.Sequence == 256)
+						ns.Sequence = 1;
+				}
+			}
+		}
+
+		public static void SASynchronization(NetState ns, PacketReader pvSrc)
+		{
+			long Key1 = pvSrc.ReadLong();
+			long Key2 = GetTime();
+			ns.Send(new SASynchronizationResp(Key1, Key2));
+		}
+
+		private static long GetTime()
+		{
+			DateTime dateTime = new System.DateTime(1970, 1, 1, 0, 0, 0, 0);
+			return (DateTime.Now - dateTime).Ticks / 10000;
+		}
+		#endregion
 	}
 }

@@ -53,24 +53,19 @@ namespace Server.Targeting
 			}
 		}
 
-		protected MultiTarget( int multiID, Point3D offset )
-			: this( multiID, offset, 10, true, TargetFlags.None )
+		public MultiTarget( int multiID, Point3D offset ) : this( multiID, offset, 10, true, TargetFlags.None )
 		{
 		}
 
-		protected MultiTarget( int multiID, Point3D offset, int range, bool allowGround, TargetFlags flags )
-			: base( range, allowGround, flags )
+		public MultiTarget( int multiID, Point3D offset, int range, bool allowGround, TargetFlags flags ) : base( range, allowGround, flags )
 		{
 			m_MultiID = multiID;
 			m_Offset = offset;
 		}
 
-		public override Packet GetPacketFor( NetState ns )
+		public override Packet GetPacket()
 		{
-			if ( ns.HighSeas )
-				return new MultiTargetReqHS( this );
-			else
-				return new MultiTargetReq( this );
+			return new MultiTargetReq( this );
 		}
 	}
 }

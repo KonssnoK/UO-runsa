@@ -23,13 +23,17 @@ using System.Collections;
 
 namespace Server
 {
-	public static class Insensitive
+	public class Insensitive
 	{
 		private static IComparer m_Comparer = CaseInsensitiveComparer.Default;
 
 		public static IComparer Comparer
 		{
 			get{ return m_Comparer; }
+		}
+
+		private Insensitive()
+		{
 		}
 
 		public static int Compare( string a, string b )

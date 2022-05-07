@@ -25,7 +25,7 @@ using Server.Network;
 
 namespace Server
 {
-	public sealed class ObjectPropertyList : Packet
+	public class ObjectPropertyList : Packet
 	{
 		private IEntity m_Entity;
 		private int m_Hash;
@@ -40,8 +40,9 @@ namespace Server
 		public string HeaderArgs{ get{ return m_HeaderArgs; } set{ m_HeaderArgs = value; } }
 
 		private static bool m_Enabled = false;
-
 		public static bool Enabled{ get{ return m_Enabled; } set{ m_Enabled = value; } }
+		private bool m_checked;
+		public bool Checked { get { return m_checked; } set { m_checked = value; } }
 
 		public ObjectPropertyList( IEntity e ) : base( 0xD6 )
 		{
@@ -178,17 +179,8 @@ namespace Server
 		}
 	}
 
-	public sealed class OPLInfo : Packet
+	public class OPLInfo : Packet
 	{
-		/*public OPLInfo( ObjectPropertyList list ) : base( 0xBF )
-		{
-			EnsureCapacity( 13 );
-
-			m_Stream.Write( (short) 0x10 );
-			m_Stream.Write( (int) list.Entity.Serial );
-			m_Stream.Write( (int) list.Hash );
-		}*/
-
 		public OPLInfo( ObjectPropertyList list ) : base( 0xDC, 9 )
 		{
 			m_Stream.Write( (int) list.Entity.Serial );

@@ -23,7 +23,7 @@ using System.Collections;
 
 namespace Server.Movement
 {
-	public static class Movement
+	public class Movement
 	{
 		private static IMovementImpl m_Impl;
 

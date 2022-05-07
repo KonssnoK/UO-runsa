@@ -34,9 +34,11 @@ namespace Server
 
 		public static Race[] Races { get { return m_Races; } }
 
+		#region SA
 		public static Race Human { get { return m_Races[0]; } }
 		public static Race Elf { get { return m_Races[1]; } }
 		public static Race Gargoyle { get { return m_Races[2]; } }
+		#endregion
 
 		private static List<Race> m_AllRaces = new List<Race>();
 
@@ -78,7 +80,7 @@ namespace Server
 					return m_Races[index];
 			}
 
-			throw new ArgumentException( "Invalid race name" );
+			throw new Exception( "Invalid race name" );
 		}
 
 		private static void CheckNamesAndValues()
@@ -115,7 +117,7 @@ namespace Server
 		public int FemaleBody { get { return m_FemaleBody; } }
 		public int FemaleGhostBody { get { return m_FemaleGhostBody; } }
 
-		protected Race( int raceID, int raceIndex, string name, string pluralName, int maleBody, int femaleBody, int maleGhostBody, int femaleGhostBody, Expansion requiredExpansion )
+		public Race( int raceID, int raceIndex, string name, string pluralName, int maleBody, int femaleBody, int maleGhostBody, int femaleGhostBody, Expansion requiredExpansion )
 		{
 			m_RaceID = raceID;
 			m_RaceIndex = raceIndex;
@@ -130,6 +132,10 @@ namespace Server
 			m_RequiredExpansion = requiredExpansion;
 			m_PluralName = pluralName;
 		}
+
+		#region SA
+		public abstract bool ValidateFace(int itemID);
+		#endregion
 
 		public virtual bool ValidateHair( Mobile m, int itemID ) { return ValidateHair( m.Female, itemID ); }
 		public abstract bool ValidateHair( bool female, int itemID );

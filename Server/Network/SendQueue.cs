@@ -104,27 +104,22 @@ namespace Server.Network {
 				if ( m_CoalesceBufferSize == value )
 					return;
 
-				BufferPool old = m_UnusedBuffers;
+				if ( m_UnusedBuffers != null )
+					m_UnusedBuffers.Free();
 
-				lock (old) {
-					if ( m_UnusedBuffers != null )
-						m_UnusedBuffers.Free();
-
-					m_CoalesceBufferSize = value;
-					m_UnusedBuffers = new BufferPool( "Coalesced", 2048, m_CoalesceBufferSize );
-				}
+				m_CoalesceBufferSize = value;
+				m_UnusedBuffers = new BufferPool( "Coalesced", 2048, m_CoalesceBufferSize );
 			}
 		}
 
 		public static byte[] AcquireBuffer() {
-			lock (m_UnusedBuffers)
-				return m_UnusedBuffers.AcquireBuffer();
+			return m_UnusedBuffers.AcquireBuffer();
 		}
 
 		public static void ReleaseBuffer( byte[] buffer ) {
-			lock (m_UnusedBuffers)
-				if ( buffer != null && buffer.Length == m_CoalesceBufferSize )
-					m_UnusedBuffers.ReleaseBuffer( buffer );
+			if ( buffer != null && buffer.Length == m_CoalesceBufferSize ) {
+				m_UnusedBuffers.ReleaseBuffer( buffer );
+			}
 		}
 
 		private Queue<Gram> _pending;
@@ -148,9 +143,15 @@ namespace Server.Network {
 		}
 
 		public Gram CheckFlushReady() {
-			Gram gram = _buffered;
-			_pending.Enqueue(_buffered);
-			_buffered = null;
+			Gram gram = null;
+
+			if ( _pending.Count == 0 && _buffered != null ) {
+				gram = _buffered;
+
+				_pending.Enqueue( _buffered );
+				_buffered = null;
+			}
+
 			return gram;
 		}
 
@@ -168,7 +169,7 @@ namespace Server.Network {
 			return gram;
 		}
 
-		private const int PendingCap = 256 * 1024;
+		private const int PendingCap = 96 * 1024;
 
 		public Gram Enqueue( byte[] buffer, int length ) {
 			return Enqueue( buffer, 0, length );
@@ -228,7 +229,6 @@ namespace Server.Network {
 		}
 	}
 
-	[Serializable]
 	public sealed class CapacityExceededException : Exception {
 		public CapacityExceededException()
 			: base( "Too much data pending." ) {

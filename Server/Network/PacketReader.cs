@@ -98,6 +98,18 @@ namespace Server.Network
 				 | (m_Data[m_Index++] <<  8)
 				 |  m_Data[m_Index++];
 		}
+		public int ReadReversedInt32()
+		{
+			if ( (m_Index + 4) > m_Size )
+				return 0;
+
+			m_Index = m_Index +4;
+
+			return (m_Data[m_Index-1] << 24)
+				 | (m_Data[m_Index -2] << 16)
+				 | (m_Data[m_Index -3] <<  8)
+				 |  m_Data[m_Index -4];
+		}
 
 		public short ReadInt16()
 		{
@@ -114,7 +126,18 @@ namespace Server.Network
 
 			return m_Data[m_Index++];
 		}
+		#region SA
+		public long ReadLong()
+		{
+			if ((m_Index + 8) > m_Size)
+				return 0;
+			long k = ReadInt32();
+			long k1 = (k << 32);
+			int k2 = ReadInt32();
 
+			return k1+(uint)k2;
+		}
+		#endregion
 		public uint ReadUInt32()
 		{
 			if ( (m_Index + 4) > m_Size )

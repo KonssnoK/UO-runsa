@@ -36,7 +36,7 @@ namespace Server.Guilds
 	{
 		private int m_Id;
 
-		protected BaseGuild( int Id )//serialization ctor
+		public BaseGuild( int Id )//serialization ctor
 		{
 			m_Id = Id;
 			m_GuildList.Add( m_Id, this );
@@ -44,7 +44,7 @@ namespace Server.Guilds
 				m_NextID = m_Id + 1;
 		}
 
-		protected BaseGuild()
+		public BaseGuild()
 		{
 			m_Id = m_NextID++;
 			m_GuildList.Add( m_Id, this );

@@ -29,11 +29,10 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Microsoft.CSharp;
 using Microsoft.VisualBasic;
-using System.Diagnostics;
 
 namespace Server
 {
-	public static class ScriptCompiler
+	public class ScriptCompiler
 	{
 		private static Assembly[] m_Assemblies;
 
@@ -78,34 +77,28 @@ namespace Server
 			return list.ToArray();
 		}
 
-		public static string GetCompilerOptions( bool debug )
+		public static string GetDefines()
 		{
-			StringBuilder sb = null;			
-
-			AppendCompilerOption( ref sb, "/unsafe" );
-
-			if( !debug )
-				AppendCompilerOption( ref sb, "/optimize" );
+			StringBuilder sb = null;
 
 #if MONO
-			AppendCompilerOption( ref sb, "/d:MONO" );
+			AppendDefine( ref sb, "/d:MONO" );
 #endif
 
+			//These two defines are legacy, ie, depreciated.
 			if( Core.Is64Bit )
-				AppendCompilerOption( ref sb, "/d:x64" );
-			
-#if NEWTIMERS
-			AppendCompilerOption(ref sb, "/d:NEWTIMERS");
-#endif
+				AppendDefine( ref sb, "/d:x64" );
 
-#if NEWPARENT
-			AppendCompilerOption(ref sb, "/d:NEWPARENT");
+			AppendDefine( ref sb, "/d:Framework_2_0" );
+
+#if Framework_3_5
+			AppendDefine( ref sb, "/d:Framework_3_5" );
 #endif
 
 			return (sb == null ? null : sb.ToString());
 		}
 
-		private static void AppendCompilerOption( ref StringBuilder sb, string define )
+		public static void AppendDefine( ref StringBuilder sb, string define )
 		{
 			if( sb == null )
 				sb = new StringBuilder();
@@ -133,7 +126,6 @@ namespace Server
 					}
 
 					bin.Write( debug );
-					bin.Write( Core.Version.ToString() );
 
 					ms.Position = 0;
 
@@ -219,16 +211,20 @@ namespace Server
 
 			DeleteFiles( "Scripts.CS*.dll" );
 
-			using ( CSharpCodeProvider provider = new CSharpCodeProvider() )
+#if Framework_3_5
+			using ( CSharpCodeProvider provider = new CSharpCodeProvider( new Dictionary<string, string>() { { "CompilerVersion", "v3.5" } } ) )
+#else
+			using( CSharpCodeProvider provider = new CSharpCodeProvider() )
+#endif
 			{
 				string path = GetUnusedPath( "Scripts.CS" );
 
 				CompilerParameters parms = new CompilerParameters( GetReferenceAssemblies(), path, debug );
 
-				string options = GetCompilerOptions( debug );
+				string defines = GetDefines();
 
-				if( options != null )
-					parms.CompilerOptions = options;
+				if( defines != null )
+					parms.CompilerOptions = defines;
 
 				if( Core.HaltOnWarning )
 					parms.WarningLevel = 4;
@@ -358,17 +354,20 @@ namespace Server
 			}
 
 			DeleteFiles( "Scripts.VB*.dll" );
-
-			using ( VBCodeProvider provider = new VBCodeProvider() )
+#if Framework_3_5
+			using ( VBCodeProvider provider = new VBCodeProvider( new Dictionary<string, string>() { { "CompilerVersion", "v3.5" } } ) )
+#else
+			using( VBCodeProvider provider = new VBCodeProvider() )
+#endif
 			{
 				string path = GetUnusedPath( "Scripts.VB" );
 
 				CompilerParameters parms = new CompilerParameters( GetReferenceAssemblies(), path, debug );
 
-				string options = GetCompilerOptions( debug );
+				string defines = GetDefines();
 
-				if( options != null )
-					parms.CompilerOptions = options;
+				if( defines != null )
+					parms.CompilerOptions = String.Format( "/D:{0}", defines );
 
 				if( Core.HaltOnWarning )
 					parms.WarningLevel = 4;
@@ -419,7 +418,7 @@ namespace Server
 				{
 					string file = e.FileName;
 
-					// Ridiculous. FileName is null if the warning/error is internally generated in csc.
+					// Rediculous. FileName is null if the warning/error is internally generated in csc.
 					if ( string.IsNullOrEmpty( file ) ) {
 						Console.WriteLine( "ScriptCompiler: {0}: {1}", e.ErrorNumber, e.ErrorText );
 						continue;
@@ -462,7 +461,7 @@ namespace Server
 					Utility.PushColor( ConsoleColor.DarkYellow );
 
 					foreach( CompilerError e in list )
-						Console.WriteLine( "    {0}: Line {1}: {2}", e.ErrorNumber, e.Line, e.ErrorText );
+						Console.WriteLine( "    {0}: Line {1}: {3}", e.ErrorNumber, e.Line, e.Column, e.ErrorText );
 
 					Utility.PopColor();
 				}
@@ -487,7 +486,7 @@ namespace Server
 					Utility.PushColor( ConsoleColor.DarkRed );
 
 					foreach( CompilerError e in list )
-						Console.WriteLine( "    {0}: Line {1}: {2}", e.ErrorNumber, e.Line, e.ErrorText );
+						Console.WriteLine( "    {0}: Line {1}: {3}", e.ErrorNumber, e.Line, e.Column, e.ErrorText );
 
 					Utility.PopColor();
 				}
@@ -529,6 +528,13 @@ namespace Server
 
 		private delegate CompilerResults Compiler( bool debug );
 
+		/*private void LoadScriptedAssembly( List<Assembly> assemblies, string fileName, Compiler compiler, bool debug )
+		{
+			if( File.Exists( fileName ) )
+			{
+			}
+		}*/
+
 		public static bool Compile()
 		{
 			return Compile( false );
@@ -565,17 +571,17 @@ namespace Server
 
 			if ( Core.VBdotNet )
 			{
-				if ( CompileVBScripts( debug, cache, out assembly ) )
+			if( CompileVBScripts( debug, cache, out assembly ) )
+			{
+				if( assembly != null )
 				{
-					if ( assembly != null )
-					{
-						assemblies.Add( assembly );
-					}
+					assemblies.Add( assembly );
 				}
-				else
-				{
-					return false;
-				}
+			}
+			else
+			{
+				return false;
+			}
 			}
 			else
 			{
@@ -590,20 +596,14 @@ namespace Server
 			m_Assemblies = assemblies.ToArray();
 
 			Console.Write( "Scripts: Verifying..." );
-
-			Stopwatch watch = Stopwatch.StartNew();
-			
 			Core.VerifySerialization();
-			
-			watch.Stop();
-
-			Console.WriteLine("done ({0} items, {1} mobiles) ({2:F2} seconds)", Core.ScriptItems, Core.ScriptMobiles, watch.Elapsed.TotalSeconds);
+			Console.WriteLine( "done ({0} items, {1} mobiles)", Core.ScriptItems, Core.ScriptMobiles );
 
 			return true;
 		}
 
 		public static void Invoke( string method )
-		{
+			{
 			List<MethodInfo> invoke = new List<MethodInfo>();
 
 			for( int a = 0; a < m_Assemblies.Length; ++a )

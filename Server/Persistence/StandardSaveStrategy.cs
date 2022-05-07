@@ -30,51 +30,30 @@ using Server.Guilds;
 
 namespace Server {
 	public class StandardSaveStrategy : SaveStrategy {
-		public enum SaveOption
-		{
-			Normal,
-			Threaded
-		}
-
-		public static SaveOption SaveType = SaveOption.Normal;
-
 		public override string Name {
 			get { return "Standard"; }
 		}
 
 		private Queue<Item> _decayQueue;
-		private bool _permitBackgroundWrite;
 
 		public StandardSaveStrategy() {
 			_decayQueue = new Queue<Item>();
 		}
 
-		protected bool PermitBackgroundWrite { get { return _permitBackgroundWrite; } set { _permitBackgroundWrite = value; } }
-
-		protected bool UseSequentialWriters { get { return (StandardSaveStrategy.SaveType == SaveOption.Normal || !_permitBackgroundWrite); } }
-
-		public override void Save(SaveMetrics metrics, bool permitBackgroundWrite)
-		{
-			_permitBackgroundWrite = permitBackgroundWrite;
-
-			SaveMobiles(metrics);
-			SaveItems(metrics);
-			SaveGuilds(metrics);
-
-			if (permitBackgroundWrite && UseSequentialWriters)	//If we're permitted to write in the background, but we don't anyways, then notify.
-				World.NotifyDiskWriteComplete();
+		public override void Save( SaveMetrics metrics ) {
+			SaveMobiles( metrics );
+			SaveItems( metrics );
+			SaveGuilds( metrics );
 		}
 
-		protected void SaveMobiles(SaveMetrics metrics)
-		{
+		protected void SaveMobiles( SaveMetrics metrics ) {
 			Dictionary<Serial, Mobile> mobiles = World.Mobiles;
 
 			GenericWriter idx;
 			GenericWriter tdb;
 			GenericWriter bin;
 
-			if (UseSequentialWriters)
-			{
+			if ( World.SaveType == World.SaveOption.Normal ) {
 				idx = new BinaryFileWriter( World.MobileIndexPath, false );
 				tdb = new BinaryFileWriter( World.MobileTypesPath, false );
 				bin = new BinaryFileWriter( World.MobileDataPath, true );
@@ -113,16 +92,15 @@ namespace Server {
 			bin.Close();
 		}
 
-		protected void SaveItems(SaveMetrics metrics)
-		{
+		protected void SaveItems( SaveMetrics metrics ) {
 			Dictionary<Serial, Item> items = World.Items;
+			List<Item> decaying = new List<Item>();
 
 			GenericWriter idx;
 			GenericWriter tdb;
 			GenericWriter bin;
 
-			if (UseSequentialWriters)
-			{
+			if ( World.SaveType == World.SaveOption.Normal ) {
 				idx = new BinaryFileWriter( World.ItemIndexPath, false );
 				tdb = new BinaryFileWriter( World.ItemTypesPath, false );
 				bin = new BinaryFileWriter( World.ItemDataPath, true );
@@ -133,12 +111,8 @@ namespace Server {
 			}
 
 			idx.Write( ( int ) items.Count );
-
-			DateTime n = DateTime.UtcNow;
-
 			foreach ( Item item in items.Values ) {
-				if (item.Decays && item.Parent == null && item.Map != Map.Internal && (item.LastMoved + item.DecayTime) <= n)
-				{
+				if ( item.Decays && item.Parent == null && item.Map != Map.Internal && ( item.LastMoved + item.DecayTime ) <= DateTime.Now ) {
 					_decayQueue.Enqueue( item );
 				}
 
@@ -168,13 +142,11 @@ namespace Server {
 			bin.Close();
 		}
 
-		protected void SaveGuilds(SaveMetrics metrics)
-		{
+		protected void SaveGuilds( SaveMetrics metrics ) {
 			GenericWriter idx;
 			GenericWriter bin;
 
-			if (UseSequentialWriters)
-			{
+			if ( World.SaveType == World.SaveOption.Normal ) {
 				idx = new BinaryFileWriter( World.GuildIndexPath, false );
 				bin = new BinaryFileWriter( World.GuildDataPath, true );
 			} else {

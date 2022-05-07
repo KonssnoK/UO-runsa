@@ -27,14 +27,6 @@ namespace Server.Targeting
 	{
 		private static int m_NextTargetID;
 
-		private static bool m_TargetIDValidation = true;
-
-		public static bool TargetIDValidation
-		{
-			get { return m_TargetIDValidation; }
-			set { m_TargetIDValidation = value; }
-		}
-
 		private int m_TargetID;
 		private int m_Range;
 		private bool m_AllowGround;
@@ -46,7 +38,7 @@ namespace Server.Targeting
 
 		public DateTime TimeoutTime{ get{ return m_TimeoutTime; } }
 
-		protected Target( int range, bool allowGround, TargetFlags flags )
+		public Target( int range, bool allowGround, TargetFlags flags )
 		{
 			m_TargetID = ++m_NextTargetID;
 			m_Range = range;
@@ -73,7 +65,7 @@ namespace Server.Targeting
 
 		public void BeginTimeout( Mobile from, TimeSpan delay )
 		{
-			m_TimeoutTime = DateTime.UtcNow + delay;
+			m_TimeoutTime = DateTime.Now + delay;
 
 			if ( m_TimeoutTimer != null )
 				m_TimeoutTimer.Stop();
@@ -176,7 +168,7 @@ namespace Server.Targeting
 			}
 		}
 
-		public virtual Packet GetPacketFor( NetState ns )
+		public virtual Packet GetPacket()
 		{
 			return new TargetReq( this );
 		}

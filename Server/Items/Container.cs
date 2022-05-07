@@ -1593,14 +1593,13 @@ namespace Server.Items
 			return false;
 		}
 
-		public override void OnSingleClick( Mobile from )
+		/*public override void OnSingleClick( Mobile from )
 		{
 			base.OnSingleClick( from );
 
 			if ( CheckContentDisplay( from ) )
-				LabelTo(from, "({0} items, {1} stones)", TotalItems, TotalWeight);
-				//LabelTo(from, 1050044, String.Format("{0}\t{1}", TotalItems, TotalWeight)); // ~1_COUNT~ items, ~2_WEIGHT~ stones
-		}
+				LabelTo( from, "({0} items, {1} stones)", TotalItems, TotalWeight );
+		}*/
 
 		private List<Mobile> m_Openers;
 
@@ -1621,34 +1620,6 @@ namespace Server.Items
 
 		public virtual void DisplayTo( Mobile to )
 		{
-			ProcessOpeners( to );
-
-			NetState ns = to.NetState;
-
-			if ( ns == null )
-				return;
-
-			if ( ns.HighSeas )
-				to.Send( new ContainerDisplayHS( this ) );
-			else
-				to.Send( new ContainerDisplay( this ) );
-			
-			if ( ns.ContainerGridLines )
-				to.Send( new ContainerContent6017( to, this ) );
-			else
-				to.Send( new ContainerContent( to, this ) );
-
-			if ( ObjectPropertyList.Enabled )
-			{
-				List<Item> items = this.Items;
-
-				for ( int i = 0; i < items.Count; ++i )
-					to.Send( items[i].OPLPacket );
-			}
-		}
-
-		public void ProcessOpeners( Mobile opener )
-		{
 			if ( !IsPublicContainer )
 			{
 				bool contains = false;
@@ -1662,7 +1633,7 @@ namespace Server.Items
 					{
 						Mobile mob = m_Openers[i];
 
-						if ( mob == opener )
+						if ( mob == to )
 						{
 							contains = true;
 						}
@@ -1678,17 +1649,31 @@ namespace Server.Items
 
 				if ( !contains )
 				{
-					if ( m_Openers == null )
-					{
+					if ( m_Openers == null ) {
 						m_Openers = new List<Mobile>();
 					}
 
-					m_Openers.Add( opener );
+					m_Openers.Add( to );
 				}
 				else if ( m_Openers != null && m_Openers.Count == 0 )
 				{
 					m_Openers = null;
 				}
+			}
+
+			to.Send( new ContainerDisplay( this ) );
+			
+			//if ( to.NetState != null && to.NetState.IsPost6017 )
+				to.Send( new ContainerContent6017( to, this ) );
+			/*else
+				to.Send( new ContainerContent( to, this ) );*/
+
+			if ( ObjectPropertyList.Enabled )
+			{
+				List<Item> items = this.Items;
+
+				for ( int i = 0; i < items.Count; ++i )
+					to.Send( items[i].OPLPacket );
 			}
 		}
 

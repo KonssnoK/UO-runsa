@@ -19,8 +19,6 @@
  ***************************************************************************/
 
 using System;
-
-using Server.Accounting;
 using Server.Network;
 
 namespace Server.Items
@@ -37,6 +35,15 @@ namespace Server.Items
 				return 0;
 			}
 		}
+		//Kons 
+		public override int DefaultMaxItems
+		{
+			get
+			{
+				return 150;
+			}
+		}
+		//End
 
 		public override bool IsVirtualItem
 		{
@@ -70,7 +77,8 @@ namespace Server.Items
 			if ( m_Owner != null )
 			{
 				m_Owner.PrivateOverheadMessage( MessageType.Regular, 0x3B2, true, String.Format( "Bank container has {0} items, {1} stones", TotalItems, TotalWeight ), m_Owner.NetState );
-				m_Owner.Send( new EquipUpdate( this ) );
+				//m_Owner.Send( new EquipUpdate( this ) );
+				m_Owner.Send( new FakeBank(this , m_Owner) );	
 				DisplayTo( m_Owner );
 			}
 		}
@@ -121,12 +129,14 @@ namespace Server.Items
 				m_Owner.Send( this.RemovePacket );
 		}
 
-		public override void OnSingleClick( Mobile from )
+		/*public override void OnSingleClick( Mobile from )
 		{
-		}
+		}*/
 
 		public override void OnDoubleClick( Mobile from )
 		{
+			if(from.AccessLevel >= AccessLevel.GameMaster)
+				base.OnDoubleClick( from );
 		}
 
 		public override DeathMoveResult OnParentDeath( Mobile parent )
@@ -164,15 +174,24 @@ namespace Server.Items
 		 	else
 		 		return false;
 		}
-
-		public override int GetTotal(TotalType type)
+	}
+	public sealed class FakeBank : Packet
+	{
+		public FakeBank( Item item ,Mobile mob) : base( 0x1A )
 		{
-			if (AccountGold.Enabled && Owner != null && Owner.Account != null && type == TotalType.Gold)
-			{
-				return Owner.Account.TotalGold;
-			}
-
-			return base.GetTotal(type);
+			this.EnsureCapacity( 20 );
+			uint serial = (uint)item.Serial.Value;
+			int itemID = item.ItemID;
+			int x = mob.X;
+			int y = mob.Y;
+			serial &= 0x7FFFFFFF;
+			m_Stream.Write( (uint) serial );
+			m_Stream.Write( (short) (itemID & 0x7FFF) );
+			x &= 0x7FFF;
+			m_Stream.Write( (short) x );
+			y &= 0x3FFF;
+			m_Stream.Write( (short) y );
+			m_Stream.Write( (sbyte) (mob.Z - 150 ) );
 		}
 	}
 }

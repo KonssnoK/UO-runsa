@@ -45,7 +45,7 @@ namespace Server
 			{
 				using ( StreamReader ip = new StreamReader( "Data/bodyTable.cfg" ) )
 				{
-					m_Types = new BodyType[0x1000];
+					m_Types = new BodyType[1000];
 
 					string line;
 
@@ -56,14 +56,15 @@ namespace Server
 
 						string[] split = line.Split( '\t' );
 
-						BodyType type;
-						int bodyID;
-
-						if( int.TryParse( split[0], out bodyID ) && Enum.TryParse( split[1], true, out type ) && bodyID >= 0 && bodyID < m_Types.Length )
+						try
 						{
-							m_Types[bodyID] = type;
+							int bodyID = int.Parse( split[0] );
+							BodyType type = (BodyType)Enum.Parse( typeof( BodyType ), split[1], true );
+
+							if ( bodyID >= 0 && bodyID < m_Types.Length )
+								m_Types[bodyID] = type;
 						}
-						else
+						catch
 						{
 							Console.WriteLine( "Warning: Invalid bodyTable entry:" );
 							Console.WriteLine( line );
@@ -99,6 +100,7 @@ namespace Server
 		{
 			get
 			{
+				#region SA
 				return m_BodyID >= 0
 					&& m_BodyID < m_Types.Length
 					&& m_Types[m_BodyID] == BodyType.Human
@@ -106,20 +108,10 @@ namespace Server
 					&& m_BodyID != 403
 					&& m_BodyID != 607
 					&& m_BodyID != 608
+					&& m_BodyID != 970
 					&& m_BodyID != 694
-					&& m_BodyID != 695
-					&& m_BodyID != 970;
-			}
-		}
-
-		public bool IsGargoyle
-		{
-			get
-			{
-				return m_BodyID == 666
-					|| m_BodyID == 667
-					|| m_BodyID == 694
-					|| m_BodyID == 695;
+					 && m_BodyID != 695;
+				#endregion
 			}
 		}
 
@@ -127,15 +119,17 @@ namespace Server
 		{
 			get
 			{
+				#region SA
 				return m_BodyID == 183
 					|| m_BodyID == 185
 					|| m_BodyID == 400
 					|| m_BodyID == 402
 					|| m_BodyID == 605
 					|| m_BodyID == 607
+					|| m_BodyID == 750
 					|| m_BodyID == 666
-					|| m_BodyID == 694
-					|| m_BodyID == 750;
+					|| m_BodyID == 694;
+				#endregion
 			}
 		}
 
@@ -143,15 +137,17 @@ namespace Server
 		{
 			get
 			{
+				#region SA
 				return m_BodyID == 184
 					|| m_BodyID == 186
 					|| m_BodyID == 401
 					|| m_BodyID == 403
 					|| m_BodyID == 606
 					|| m_BodyID == 608
+					|| m_BodyID == 751
 					|| m_BodyID == 667
-					|| m_BodyID == 695
-					|| m_BodyID == 751;
+					|| m_BodyID == 695;
+				#endregion
 			}
 		}
 
@@ -159,13 +155,15 @@ namespace Server
 		{
 			get
 			{
+				#region SA
 				return m_BodyID == 402
 					|| m_BodyID == 403
 					|| m_BodyID == 607
 					|| m_BodyID == 608
+					|| m_BodyID == 970
 					|| m_BodyID == 694
-					|| m_BodyID == 695
-					|| m_BodyID == 970;
+					|| m_BodyID == 695;
+				#endregion
 			}
 		}
 

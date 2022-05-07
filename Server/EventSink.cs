@@ -32,48 +32,335 @@ using Server.Commands;
 
 namespace Server
 {
-	public delegate void CharacterCreatedEventHandler( CharacterCreatedEventArgs e );
-	public delegate void OpenDoorMacroEventHandler( OpenDoorMacroEventArgs e );
-	public delegate void SpeechEventHandler( SpeechEventArgs e );
-	public delegate void LoginEventHandler( LoginEventArgs e );
-	public delegate void ServerListEventHandler( ServerListEventArgs e );
-	public delegate void MovementEventHandler( MovementEventArgs e );
-	public delegate void HungerChangedEventHandler( HungerChangedEventArgs e );
-	public delegate void CrashedEventHandler( CrashedEventArgs e );
-	public delegate void ShutdownEventHandler( ShutdownEventArgs e );
-	public delegate void HelpRequestEventHandler( HelpRequestEventArgs e );
-	public delegate void DisarmRequestEventHandler( DisarmRequestEventArgs e );
-	public delegate void StunRequestEventHandler( StunRequestEventArgs e );
-	public delegate void OpenSpellbookRequestEventHandler( OpenSpellbookRequestEventArgs e );
-	public delegate void CastSpellRequestEventHandler( CastSpellRequestEventArgs e );
-	public delegate void BandageTargetRequestEventHandler( BandageTargetRequestEventArgs e );
-	public delegate void AnimateRequestEventHandler( AnimateRequestEventArgs e );
-	public delegate void LogoutEventHandler( LogoutEventArgs e );
-	public delegate void SocketConnectEventHandler( SocketConnectEventArgs e );
-	public delegate void ConnectedEventHandler( ConnectedEventArgs e );
-	public delegate void DisconnectedEventHandler( DisconnectedEventArgs e );
-	public delegate void RenameRequestEventHandler( RenameRequestEventArgs e );
-	public delegate void PlayerDeathEventHandler( PlayerDeathEventArgs e );
-	public delegate void VirtueGumpRequestEventHandler( VirtueGumpRequestEventArgs e );
-	public delegate void VirtueItemRequestEventHandler( VirtueItemRequestEventArgs e );
-	public delegate void VirtueMacroRequestEventHandler( VirtueMacroRequestEventArgs e );
+	public delegate void CharacterCreatedEventHandler(CharacterCreatedEventArgs e);
+	public delegate void OpenDoorMacroEventHandler(OpenDoorMacroEventArgs e);
+	public delegate void SpeechEventHandler(SpeechEventArgs e);
+	public delegate void LoginEventHandler(LoginEventArgs e);
+	public delegate void ServerListEventHandler(ServerListEventArgs e);
+	public delegate void MovementEventHandler(MovementEventArgs e);
+	public delegate void HungerChangedEventHandler(HungerChangedEventArgs e);
+	public delegate void CrashedEventHandler(CrashedEventArgs e);
+	public delegate void ShutdownEventHandler(ShutdownEventArgs e);
+	public delegate void HelpRequestEventHandler(HelpRequestEventArgs e);
+	public delegate void DisarmRequestEventHandler(DisarmRequestEventArgs e);
+	public delegate void StunRequestEventHandler(StunRequestEventArgs e);
+	public delegate void OpenSpellbookRequestEventHandler(OpenSpellbookRequestEventArgs e);
+	public delegate void CastSpellRequestEventHandler(CastSpellRequestEventArgs e);
+	public delegate void AnimateRequestEventHandler(AnimateRequestEventArgs e);
+	public delegate void LogoutEventHandler(LogoutEventArgs e);
+	public delegate void SocketConnectEventHandler(SocketConnectEventArgs e);
+	public delegate void ConnectedEventHandler(ConnectedEventArgs e);
+	public delegate void DisconnectedEventHandler(DisconnectedEventArgs e);
+	public delegate void RenameRequestEventHandler(RenameRequestEventArgs e);
+	public delegate void PlayerDeathEventHandler(PlayerDeathEventArgs e);
+	public delegate void VirtueGumpRequestEventHandler(VirtueGumpRequestEventArgs e);
+	public delegate void VirtueItemRequestEventHandler(VirtueItemRequestEventArgs e);
+	public delegate void VirtueMacroRequestEventHandler(VirtueMacroRequestEventArgs e);
 	public delegate void ChatRequestEventHandler( ChatRequestEventArgs e );
-	public delegate void AccountLoginEventHandler( AccountLoginEventArgs e );
-	public delegate void PaperdollRequestEventHandler( PaperdollRequestEventArgs e );
-	public delegate void ProfileRequestEventHandler( ProfileRequestEventArgs e );
-	public delegate void ChangeProfileRequestEventHandler( ChangeProfileRequestEventArgs e );
-	public delegate void AggressiveActionEventHandler( AggressiveActionEventArgs e );
-	public delegate void GameLoginEventHandler( GameLoginEventArgs e );
-	public delegate void DeleteRequestEventHandler( DeleteRequestEventArgs e );
+	public delegate void AccountLoginEventHandler(AccountLoginEventArgs e);
+	public delegate void PaperdollRequestEventHandler(PaperdollRequestEventArgs e);
+	public delegate void ProfileRequestEventHandler(ProfileRequestEventArgs e);
+	public delegate void ChangeProfileRequestEventHandler(ChangeProfileRequestEventArgs e);
+	public delegate void AggressiveActionEventHandler(AggressiveActionEventArgs e);
+	public delegate void GameLoginEventHandler(GameLoginEventArgs e);
+	public delegate void DeleteRequestEventHandler(DeleteRequestEventArgs e);
 	public delegate void WorldLoadEventHandler();
-	public delegate void WorldSaveEventHandler( WorldSaveEventArgs e );
-	public delegate void SetAbilityEventHandler( SetAbilityEventArgs e );
-	public delegate void FastWalkEventHandler( FastWalkEventArgs e );
+	public delegate void WorldSaveEventHandler(WorldSaveEventArgs e);
+	public delegate void SetAbilityEventHandler(SetAbilityEventArgs e);
+	public delegate void FastWalkEventHandler(FastWalkEventArgs e);
 	public delegate void ServerStartedEventHandler();
-	public delegate void CreateGuildHandler( CreateGuildEventArgs e );
-	public delegate void GuildGumpRequestHandler( GuildGumpRequestArgs e );
-	public delegate void QuestGumpRequestHandler( QuestGumpRequestArgs e );
-	public delegate void ClientVersionReceivedHandler( ClientVersionReceivedArgs e );
+	public delegate BaseGuild CreateGuildHandler(CreateGuildEventArgs e);
+	public delegate void GuildGumpRequestHandler(GuildGumpRequestArgs e);
+	public delegate void QuestGumpRequestHandler(QuestGumpRequestArgs e);
+	public delegate void ClientVersionReceivedHandler(ClientVersionReceivedArgs e);
+
+	#region KR
+	public delegate void TargetedSpellEventHandler(TargetedSpellEventArgs e);
+	public delegate void TargetedSkillEventHandler(TargetedSkillEventArgs e);
+	public delegate void TargetedItemUseEventHandler(TargetedItemUseEventArgs e);
+	public delegate void EquipMacroEventHandler(EquipMacroEventArgs e);
+	public delegate void UnequipMacroEventHandler(UnequipMacroEventArgs e);
+	public delegate void TargetByResourceMacroEventHandler(TargetByResourceMacroEventArgs e);
+	public delegate void BugReportEventHandler(BugReportEventArgs e);
+	public delegate void HouseGumpResponseEventHandler(HouseGumpResponseEventArgs e);
+	public delegate void ReportUseKRHotbarIconEventHandler(ReportUseKRHotbarIconEventArgs e);
+	public delegate void RemoveHighlightKRElementEventHandler(RemoveHighlightKRElementEventArgs e);
+
+	public class ReportUseKRHotbarIconEventArgs : EventArgs
+	{
+		private NetState state;
+		private int m_type;
+		private Serial m_serial;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public int Type
+		{
+			get { return m_type; }
+		}
+		public Serial Serial
+		{
+			get { return m_serial; }
+		}
+		public ReportUseKRHotbarIconEventArgs(NetState state, int type, Serial serial)
+		{
+			this.state = state;
+			m_type = type;
+			m_serial = serial;
+		}
+	}
+
+	public class RemoveHighlightKRElementEventArgs : EventArgs
+	{
+		private NetState state;
+		private Mobile m_mobile;
+		private int m_elementid;
+		private Mobile m_dmobile;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public Mobile Mobile
+		{
+			get { return m_mobile; }
+		}
+		public int ElementID
+		{
+			get { return m_elementid; }
+		}
+		public Mobile DMobile
+		{
+			get { return m_dmobile; }
+		}
+		public RemoveHighlightKRElementEventArgs(NetState state, Mobile mobile, int elementid, Mobile dmobile)
+		{
+			this.state = state;
+			this.m_mobile = mobile;
+			this.m_elementid = elementid;
+			this.m_dmobile = dmobile;
+		}
+	}
+	public class HouseGumpResponseEventArgs : EventArgs
+	{
+		private NetState state;
+		private Serial m_mobile;
+		private Serial m_house;
+		private int m_command;
+		private int m_other;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public Serial Mobile
+		{
+			get { return m_mobile; }
+		}
+		public Serial House
+		{
+			get { return m_house; }
+		}
+		public int Command
+		{
+			get { return m_command; }
+		}
+
+		public int SubCommand
+		{
+			get { return m_other; }
+		}
+
+		public HouseGumpResponseEventArgs(NetState state, Serial mobile, Serial house, int command, int other)
+		{
+			this.state = state;
+			this.m_mobile = mobile;
+			this.m_house = house;
+			this.m_command = command;
+			this.m_other = other;
+		}
+	}
+	public class BugReportEventArgs : EventArgs
+	{
+		private NetState state;
+		private int m_category;
+		private string m_language;
+		private string m_text;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public int Category
+		{
+			get { return m_category; }
+		}
+		public string Language
+		{
+			get { return m_language; }
+		}
+		public string Text
+		{
+			get { return m_text; }
+		}
+
+		public BugReportEventArgs(NetState state, int category, string language, string text)
+		{
+			this.state = state;
+			this.m_category = category;
+			this.m_language = language;
+			this.m_text = text;
+		}
+	}
+	public class TargetByResourceMacroEventArgs : EventArgs
+	{
+		private NetState state;
+		private Item m_tool;
+		private int m_resource_type;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public Item Tool
+		{
+			get { return m_tool; }
+		}
+		public int ResourceType
+		{
+			get { return m_resource_type; }
+		}
+
+		public TargetByResourceMacroEventArgs(NetState state, Item tool, int type)
+		{
+			this.state = state;
+			this.m_tool = tool;
+			this.m_resource_type = type;
+		}
+	}
+	public class EquipMacroEventArgs : EventArgs
+	{
+		private NetState state;
+		private List<int> m_list;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public List<int> List
+		{
+			get { return m_list; }
+		}
+
+		public EquipMacroEventArgs(NetState state, List<int> list)
+		{
+			this.state = state;
+			this.m_list = list;
+		}
+	}
+	public class UnequipMacroEventArgs : EventArgs
+	{
+		private NetState state;
+		private List<int> m_list;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public List<int> List
+		{
+			get { return m_list; }
+		}
+
+		public UnequipMacroEventArgs(NetState state, List<int> list)
+		{
+			this.state = state;
+			this.m_list = list;
+		}
+	}
+	public class TargetedSpellEventArgs : EventArgs
+	{
+		private NetState state;
+		private Serial target;
+		private short spellID;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public Serial Serial
+		{
+			get { return target; }
+		}
+		public short SpellID
+		{
+			get { return spellID; }
+		}
+
+		public TargetedSpellEventArgs(NetState state, Serial target, short spellID)
+		{
+			this.state = state;
+			this.target = target;
+			this.spellID = spellID;
+		}
+	}
+
+	public class TargetedSkillEventArgs : EventArgs
+	{
+		private NetState state;
+		private IEntity target;
+		private short skillId;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public IEntity Target
+		{
+			get { return target; }
+		}
+		public short SkillId
+		{
+			get { return skillId; }
+		}
+
+		public TargetedSkillEventArgs(NetState state, IEntity target, short SkillId)
+		{
+			this.state = state;
+			this.target = target;
+			this.skillId = SkillId;
+		}
+	}
+
+	public class TargetedItemUseEventArgs : EventArgs
+	{
+		private NetState state;
+		private IEntity src;
+		private IEntity target;
+
+		public NetState NetState
+		{
+			get { return state; }
+		}
+		public IEntity Source
+		{
+			get { return src; }
+		}
+		public IEntity Target
+		{
+			get { return target; }
+		}
+
+		public TargetedItemUseEventArgs(NetState state, IEntity src, IEntity target)
+		{
+			this.state = state;
+			this.src = src;
+			this.target = target;
+		}
+	}
+	#endregion KR
 
 	public class ClientVersionReceivedArgs : EventArgs
 	{
@@ -83,7 +370,7 @@ namespace Server
 		public NetState State { get { return m_State; } }
 		public ClientVersion Version { get { return m_Version; } }
 
-		public ClientVersionReceivedArgs( NetState state, ClientVersion cv )
+		public ClientVersionReceivedArgs(NetState state, ClientVersion cv)
 		{
 			m_State = state;
 			m_Version = cv;
@@ -95,10 +382,7 @@ namespace Server
 		private int m_Id;
 		public int Id { get { return m_Id; } set { m_Id = value; } }
 
-		private BaseGuild m_Guild;
-		public BaseGuild Guild { get { return m_Guild; } set { m_Guild = value; } }
-
-		public CreateGuildEventArgs( int id )
+		public CreateGuildEventArgs(int id)
 		{
 			m_Id = id;
 		}
@@ -108,9 +392,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public GuildGumpRequestArgs( Mobile mobile )
+		public GuildGumpRequestArgs(Mobile mobile)
 		{
 			m_Mobile = mobile;
 		}
@@ -122,7 +406,7 @@ namespace Server
 
 		public Mobile Mobile { get { return m_Mobile; } }
 
-		public QuestGumpRequestArgs( Mobile mobile )
+		public QuestGumpRequestArgs(Mobile mobile)
 		{
 			m_Mobile = mobile;
 		}
@@ -133,10 +417,10 @@ namespace Server
 		private Mobile m_Mobile;
 		private int m_Index;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public int Index{ get{ return m_Index; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int Index { get { return m_Index; } }
 
-		public SetAbilityEventArgs( Mobile mobile, int index )
+		public SetAbilityEventArgs(Mobile mobile, int index)
 		{
 			m_Mobile = mobile;
 			m_Index = index;
@@ -148,10 +432,10 @@ namespace Server
 		private NetState m_State;
 		private int m_Index;
 
-		public NetState State{ get{ return m_State; } }
-		public int Index{ get{ return m_Index; } }
+		public NetState State { get { return m_State; } }
+		public int Index { get { return m_Index; } }
 
-		public DeleteRequestEventArgs( NetState state, int index )
+		public DeleteRequestEventArgs(NetState state, int index)
 		{
 			m_State = state;
 			m_Index = index;
@@ -166,13 +450,13 @@ namespace Server
 		private bool m_Accepted;
 		private CityInfo[] m_CityInfo;
 
-		public NetState State{ get{ return m_State; } }
-		public string Username{ get{ return m_Username; } }
-		public string Password{ get{ return m_Password; } }
-		public bool Accepted{ get{ return m_Accepted; } set{ m_Accepted = value; } }
-		public CityInfo[] CityInfo{ get{ return m_CityInfo; } set{ m_CityInfo = value; } }
+		public NetState State { get { return m_State; } }
+		public string Username { get { return m_Username; } }
+		public string Password { get { return m_Password; } }
+		public bool Accepted { get { return m_Accepted; } set { m_Accepted = value; } }
+		public CityInfo[] CityInfo { get { return m_CityInfo; } set { m_CityInfo = value; } }
 
-		public GameLoginEventArgs( NetState state, string un, string pw )
+		public GameLoginEventArgs(NetState state, string un, string pw)
 		{
 			m_State = state;
 			m_Username = un;
@@ -186,17 +470,17 @@ namespace Server
 		private Mobile m_Aggressor;
 		private bool m_Criminal;
 
-		public Mobile Aggressed{ get{ return m_Aggressed; } }
-		public Mobile Aggressor{ get{ return m_Aggressor; } }
-		public bool Criminal{ get{ return m_Criminal; } }
+		public Mobile Aggressed { get { return m_Aggressed; } }
+		public Mobile Aggressor { get { return m_Aggressor; } }
+		public bool Criminal { get { return m_Criminal; } }
 
 		private static Queue<AggressiveActionEventArgs> m_Pool = new Queue<AggressiveActionEventArgs>();
 
-		public static AggressiveActionEventArgs Create( Mobile aggressed, Mobile aggressor, bool criminal )
+		public static AggressiveActionEventArgs Create(Mobile aggressed, Mobile aggressor, bool criminal)
 		{
 			AggressiveActionEventArgs args;
 
-			if ( m_Pool.Count > 0 )
+			if (m_Pool.Count > 0)
 			{
 				args = m_Pool.Dequeue();
 
@@ -206,13 +490,13 @@ namespace Server
 			}
 			else
 			{
-				args = new AggressiveActionEventArgs( aggressed, aggressor, criminal );
+				args = new AggressiveActionEventArgs(aggressed, aggressor, criminal);
 			}
 
 			return args;
 		}
 
-		private AggressiveActionEventArgs( Mobile aggressed, Mobile aggressor, bool criminal )
+		private AggressiveActionEventArgs(Mobile aggressed, Mobile aggressor, bool criminal)
 		{
 			m_Aggressed = aggressed;
 			m_Aggressor = aggressor;
@@ -221,7 +505,7 @@ namespace Server
 
 		public void Free()
 		{
-			m_Pool.Enqueue( this );
+			m_Pool.Enqueue(this);
 		}
 	}
 
@@ -230,10 +514,10 @@ namespace Server
 		private Mobile m_Beholder;
 		private Mobile m_Beheld;
 
-		public Mobile Beholder{ get{ return m_Beholder; } }
-		public Mobile Beheld{ get{ return m_Beheld; } }
+		public Mobile Beholder { get { return m_Beholder; } }
+		public Mobile Beheld { get { return m_Beheld; } }
 
-		public ProfileRequestEventArgs( Mobile beholder, Mobile beheld )
+		public ProfileRequestEventArgs(Mobile beholder, Mobile beheld)
 		{
 			m_Beholder = beholder;
 			m_Beheld = beheld;
@@ -246,11 +530,11 @@ namespace Server
 		private Mobile m_Beheld;
 		private string m_Text;
 
-		public Mobile Beholder{ get{ return m_Beholder; } }
-		public Mobile Beheld{ get{ return m_Beheld; } }
-		public string Text{ get{ return m_Text; } }
+		public Mobile Beholder { get { return m_Beholder; } }
+		public Mobile Beheld { get { return m_Beheld; } }
+		public string Text { get { return m_Text; } }
 
-		public ChangeProfileRequestEventArgs( Mobile beholder, Mobile beheld, string text )
+		public ChangeProfileRequestEventArgs(Mobile beholder, Mobile beheld, string text)
 		{
 			m_Beholder = beholder;
 			m_Beheld = beheld;
@@ -263,10 +547,10 @@ namespace Server
 		private Mobile m_Beholder;
 		private Mobile m_Beheld;
 
-		public Mobile Beholder{ get{ return m_Beholder; } }
-		public Mobile Beheld{ get{ return m_Beheld; } }
+		public Mobile Beholder { get { return m_Beholder; } }
+		public Mobile Beheld { get { return m_Beheld; } }
 
-		public PaperdollRequestEventArgs( Mobile beholder, Mobile beheld )
+		public PaperdollRequestEventArgs(Mobile beholder, Mobile beheld)
 		{
 			m_Beholder = beholder;
 			m_Beheld = beheld;
@@ -282,13 +566,13 @@ namespace Server
 		private bool m_Accepted;
 		private ALRReason m_RejectReason;
 
-		public NetState State{ get{ return m_State; } }
-		public string Username{ get{ return m_Username; } }
-		public string Password{ get{ return m_Password; } }
-		public bool Accepted{ get{ return m_Accepted; } set{ m_Accepted = value; } }
-		public ALRReason RejectReason{ get{ return m_RejectReason; } set{ m_RejectReason = value; } }
+		public NetState State { get { return m_State; } }
+		public string Username { get { return m_Username; } }
+		public string Password { get { return m_Password; } }
+		public bool Accepted { get { return m_Accepted; } set { m_Accepted = value; } }
+		public ALRReason RejectReason { get { return m_RejectReason; } set { m_RejectReason = value; } }
 
-		public AccountLoginEventArgs( NetState state, string username, string password )
+		public AccountLoginEventArgs(NetState state, string username, string password)
 		{
 			m_State = state;
 			m_Username = username;
@@ -302,11 +586,11 @@ namespace Server
 		private Mobile m_Beheld;
 		private int m_GumpID;
 
-		public Mobile Beholder{ get{ return m_Beholder; } }
-		public Mobile Beheld{ get{ return m_Beheld; } }
-		public int GumpID{ get{ return m_GumpID; } }
+		public Mobile Beholder { get { return m_Beholder; } }
+		public Mobile Beheld { get { return m_Beheld; } }
+		public int GumpID { get { return m_GumpID; } }
 
-		public VirtueItemRequestEventArgs( Mobile beholder, Mobile beheld, int gumpID )
+		public VirtueItemRequestEventArgs(Mobile beholder, Mobile beheld, int gumpID)
 		{
 			m_Beholder = beholder;
 			m_Beheld = beheld;
@@ -318,10 +602,10 @@ namespace Server
 	{
 		private Mobile m_Beholder, m_Beheld;
 
-		public Mobile Beholder{ get{ return m_Beholder; } }
-		public Mobile Beheld{ get{ return m_Beheld; } }
+		public Mobile Beholder { get { return m_Beholder; } }
+		public Mobile Beheld { get { return m_Beheld; } }
 
-		public VirtueGumpRequestEventArgs( Mobile beholder, Mobile beheld )
+		public VirtueGumpRequestEventArgs(Mobile beholder, Mobile beheld)
 		{
 			m_Beholder = beholder;
 			m_Beheld = beheld;
@@ -333,35 +617,35 @@ namespace Server
 		private Mobile m_Mobile;
 		private int m_VirtueID;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public int VirtueID{ get{ return m_VirtueID; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int VirtueID { get { return m_VirtueID; } }
 
-		public VirtueMacroRequestEventArgs( Mobile mobile, int virtueID )
+		public VirtueMacroRequestEventArgs(Mobile mobile, int virtueID)
 		{
 			m_Mobile = mobile;
 			m_VirtueID = virtueID;
 		}
 	}
 
-	public class ChatRequestEventArgs : EventArgs
-	{
-		private Mobile m_Mobile;
-
-		public Mobile Mobile{ get{ return m_Mobile; } }
-
-		public ChatRequestEventArgs( Mobile mobile )
+		public class ChatRequestEventArgs : EventArgs
 		{
-			m_Mobile = mobile;
+			private Mobile m_Mobile;
+
+			public Mobile Mobile{ get{ return m_Mobile; } }
+
+			public ChatRequestEventArgs( Mobile mobile )
+			{
+				m_Mobile = mobile;
+			}
 		}
-	}
 
 	public class PlayerDeathEventArgs : EventArgs
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public PlayerDeathEventArgs( Mobile mobile )
+		public PlayerDeathEventArgs(Mobile mobile)
 		{
 			m_Mobile = mobile;
 		}
@@ -372,11 +656,11 @@ namespace Server
 		private Mobile m_From, m_Target;
 		private string m_Name;
 
-		public Mobile From{ get{ return m_From; } }
-		public Mobile Target{ get{ return m_Target; } }
-		public string Name{ get{ return m_Name; } }
+		public Mobile From { get { return m_From; } }
+		public Mobile Target { get { return m_Target; } }
+		public string Name { get { return m_Name; } }
 
-		public RenameRequestEventArgs( Mobile from, Mobile target, string name )
+		public RenameRequestEventArgs(Mobile from, Mobile target, string name)
 		{
 			m_From = from;
 			m_Target = target;
@@ -388,9 +672,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public LogoutEventArgs( Mobile m )
+		public LogoutEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -401,10 +685,10 @@ namespace Server
 		private Socket m_Socket;
 		private bool m_AllowConnection;
 
-		public Socket Socket{ get{ return m_Socket; } }
-		public bool AllowConnection{ get { return m_AllowConnection; } set { m_AllowConnection = value; } }
+		public Socket Socket { get { return m_Socket; } }
+		public bool AllowConnection { get { return m_AllowConnection; } set { m_AllowConnection = value; } }
 
-		public SocketConnectEventArgs( Socket s )
+		public SocketConnectEventArgs(Socket s)
 		{
 			m_Socket = s;
 			m_AllowConnection = true;
@@ -415,9 +699,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public ConnectedEventArgs( Mobile m )
+		public ConnectedEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -427,9 +711,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public DisconnectedEventArgs( Mobile m )
+		public DisconnectedEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -440,10 +724,10 @@ namespace Server
 		private Mobile m_Mobile;
 		private string m_Action;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public string Action{ get{ return m_Action; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public string Action { get { return m_Action; } }
 
-		public AnimateRequestEventArgs( Mobile m, string action )
+		public AnimateRequestEventArgs(Mobile m, string action)
 		{
 			m_Mobile = m;
 			m_Action = action;
@@ -456,33 +740,15 @@ namespace Server
 		private Item m_Spellbook;
 		private int m_SpellID;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public Item Spellbook{ get{ return m_Spellbook; } }
-		public int SpellID{ get{ return m_SpellID; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public Item Spellbook { get { return m_Spellbook; } }
+		public int SpellID { get { return m_SpellID; } }
 
-		public CastSpellRequestEventArgs( Mobile m, int spellID, Item book )
+		public CastSpellRequestEventArgs(Mobile m, int spellID, Item book)
 		{
 			m_Mobile = m;
 			m_Spellbook = book;
 			m_SpellID = spellID;
-		}
-	}
-
-	public class BandageTargetRequestEventArgs : EventArgs
-	{
-		private Mobile m_Mobile;
-		private Item m_Bandage;
-		private Mobile m_Target;
-
-		public Mobile Mobile { get { return m_Mobile; } }
-		public Item Bandage { get { return m_Bandage; } }
-		public Mobile Target { get { return m_Target; } }
-
-		public BandageTargetRequestEventArgs(Mobile m, Item bandage, Mobile target)
-		{
-			m_Mobile = m;
-			m_Bandage = bandage;
-			m_Target = target;
 		}
 	}
 
@@ -491,10 +757,10 @@ namespace Server
 		private Mobile m_Mobile;
 		private int m_Type;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public int Type{ get{ return m_Type; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int Type { get { return m_Type; } }
 
-		public OpenSpellbookRequestEventArgs( Mobile m, int type )
+		public OpenSpellbookRequestEventArgs(Mobile m, int type)
 		{
 			m_Mobile = m;
 			m_Type = type;
@@ -505,9 +771,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public StunRequestEventArgs( Mobile m )
+		public StunRequestEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -517,9 +783,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public DisarmRequestEventArgs( Mobile m )
+		public DisarmRequestEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -529,9 +795,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public HelpRequestEventArgs( Mobile m )
+		public HelpRequestEventArgs(Mobile m)
 		{
 			m_Mobile = m;
 		}
@@ -549,10 +815,10 @@ namespace Server
 		private Exception m_Exception;
 		private bool m_Close;
 
-		public Exception Exception{ get{ return m_Exception; } }
-		public bool Close{ get{ return m_Close; } set{ m_Close = value; } }
+		public Exception Exception { get { return m_Exception; } }
+		public bool Close { get { return m_Close; } set { m_Close = value; } }
 
-		public CrashedEventArgs( Exception e )
+		public CrashedEventArgs(Exception e)
 		{
 			m_Exception = e;
 		}
@@ -563,10 +829,10 @@ namespace Server
 		private Mobile m_Mobile;
 		private int m_OldValue;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public int OldValue{ get{ return m_OldValue; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public int OldValue { get { return m_OldValue; } }
 
-		public HungerChangedEventArgs( Mobile mobile, int oldValue )
+		public HungerChangedEventArgs(Mobile mobile, int oldValue)
 		{
 			m_Mobile = mobile;
 			m_OldValue = oldValue;
@@ -579,17 +845,17 @@ namespace Server
 		private Direction m_Direction;
 		private bool m_Blocked;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public Direction Direction{ get{ return m_Direction; } }
-		public bool Blocked{ get{ return m_Blocked; } set{ m_Blocked = value; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public Direction Direction { get { return m_Direction; } }
+		public bool Blocked { get { return m_Blocked; } set { m_Blocked = value; } }
 
 		private static Queue<MovementEventArgs> m_Pool = new Queue<MovementEventArgs>();
 
-		public static MovementEventArgs Create( Mobile mobile, Direction dir )
+		public static MovementEventArgs Create(Mobile mobile, Direction dir)
 		{
 			MovementEventArgs args;
 
-			if ( m_Pool.Count > 0 )
+			if (m_Pool.Count > 0)
 			{
 				args = m_Pool.Dequeue();
 
@@ -599,13 +865,13 @@ namespace Server
 			}
 			else
 			{
-				args = new MovementEventArgs( mobile, dir );
+				args = new MovementEventArgs(mobile, dir);
 			}
 
 			return args;
 		}
 
-		public MovementEventArgs( Mobile mobile, Direction dir )
+		public MovementEventArgs(Mobile mobile, Direction dir)
 		{
 			m_Mobile = mobile;
 			m_Direction = dir;
@@ -613,7 +879,7 @@ namespace Server
 
 		public void Free()
 		{
-			m_Pool.Enqueue( this );
+			m_Pool.Enqueue(this);
 		}
 	}
 
@@ -624,22 +890,27 @@ namespace Server
 		private bool m_Rejected;
 		private List<ServerInfo> m_Servers;
 
-		public NetState State{ get{ return m_State; } }
-		public IAccount Account{ get{ return m_Account; } }
-		public bool Rejected{ get{ return m_Rejected; } set{ m_Rejected = value; } }
-		public List<ServerInfo> Servers{ get{ return m_Servers; } }
+		public NetState State { get { return m_State; } }
+		public IAccount Account { get { return m_Account; } }
+		public bool Rejected { get { return m_Rejected; } set { m_Rejected = value; } }
+		public List<ServerInfo> Servers { get { return m_Servers; } }
 
-		public void AddServer( string name, IPEndPoint address )
+		public void AddServer(string name, int fullPercent, IPEndPoint address)
 		{
-			AddServer( name, 0, TimeZone.CurrentTimeZone, address );
+			AddServer(name, fullPercent, TimeZone.CurrentTimeZone, address);
 		}
 
-		public void AddServer( string name, int fullPercent, TimeZone tz, IPEndPoint address )
+		public void AddServer(string name, IPEndPoint address)
 		{
-			m_Servers.Add( new ServerInfo( name, fullPercent, tz, address ) );
+			AddServer(name, 0, TimeZone.CurrentTimeZone, address);
 		}
 
-		public ServerListEventArgs( NetState state, IAccount account )
+		public void AddServer(string name, int fullPercent, TimeZone tz, IPEndPoint address)
+		{
+			m_Servers.Add(new ServerInfo(name, fullPercent, tz, address));
+		}
+
+		public ServerListEventArgs(NetState state, IAccount account)
 		{
 			m_State = state;
 			m_Account = account;
@@ -652,10 +923,10 @@ namespace Server
 		private SkillName m_Name;
 		private int m_Value;
 
-		public SkillName Name{ get{ return m_Name; } }
-		public int Value{ get{ return m_Value; } }
+		public SkillName Name { get { return m_Name; } }
+		public int Value { get { return m_Value; } }
 
-		public SkillNameValue( SkillName name, int value )
+		public SkillNameValue(SkillName name, int value)
 		{
 			m_Name = name;
 			m_Value = value;
@@ -680,27 +951,36 @@ namespace Server
 
 		private Race m_Race;
 
-		public NetState State{ get{ return m_State; } }
-		public IAccount Account{ get{ return m_Account; } }
-		public Mobile Mobile{ get{ return m_Mobile; } set{ m_Mobile = value; } }
-		public string Name{ get{ return m_Name; } }
-		public bool Female{ get{ return m_Female; } }
-		public int Hue{ get{ return m_Hue; } }
-		public int Str{ get{ return m_Str; } }
-		public int Dex{ get{ return m_Dex; } }
-		public int Int{ get{ return m_Int; } }
-		public CityInfo City{ get{ return m_City; } }
-		public SkillNameValue[] Skills{ get{ return m_Skills; } }
-		public int ShirtHue{ get{ return m_ShirtHue; } }
-		public int PantsHue{ get{ return m_PantsHue; } }
-		public int HairID{ get{ return m_HairID; } }
-		public int HairHue{ get{ return m_HairHue; } }
-		public int BeardID{ get{ return m_BeardID; } }
-		public int BeardHue{ get{ return m_BeardHue; } }
-		public int Profession{ get{ return m_Profession; } set{ m_Profession = value; }}
-		public Race Race { get { return m_Race; } }
+		#region KR
+		private int m_Face;
+		private int m_FaceHue;
+		#endregion
 
-		public CharacterCreatedEventArgs( NetState state, IAccount a, string name, bool female, int hue, int str, int dex, int intel, CityInfo city, SkillNameValue[] skills, int shirtHue, int pantsHue, int hairID, int hairHue, int beardID, int beardHue, int profession, Race race )
+		public NetState State { get { return m_State; } }
+		public IAccount Account { get { return m_Account; } }
+		public Mobile Mobile { get { return m_Mobile; } set { m_Mobile = value; } }
+		public string Name { get { return m_Name; } }
+		public bool Female { get { return m_Female; } }
+		public int Hue { get { return m_Hue; } }
+		public int Str { get { return m_Str; } }
+		public int Dex { get { return m_Dex; } }
+		public int Int { get { return m_Int; } }
+		public CityInfo City { get { return m_City; } }
+		public SkillNameValue[] Skills { get { return m_Skills; } }
+		public int ShirtHue { get { return m_ShirtHue; } }
+		public int PantsHue { get { return m_PantsHue; } }
+		public int HairID { get { return m_HairID; } }
+		public int HairHue { get { return m_HairHue; } }
+		public int BeardID { get { return m_BeardID; } }
+		public int BeardHue { get { return m_BeardHue; } }
+		public int Profession { get { return m_Profession; } set { m_Profession = value; } }
+		public Race Race { get { return m_Race; } }
+		#region KR
+		public int FaceID { get { return m_Face; } }
+		public int FaceHue { get { return m_FaceHue; } }
+		#endregion
+
+		public CharacterCreatedEventArgs(NetState state, IAccount a, string name, bool female, int hue, int str, int dex, int intel, CityInfo city, SkillNameValue[] skills, int shirtHue, int pantsHue, int hairID, int hairHue, int beardID, int beardHue, int profession, Race race, int face, int facehue)
 		{
 			m_State = state;
 			m_Account = a;
@@ -720,6 +1000,10 @@ namespace Server
 			m_BeardHue = beardHue;
 			m_Profession = profession;
 			m_Race = race;
+			#region KR
+			m_Face = face;
+			m_FaceHue = facehue;
+			#endregion
 		}
 	}
 
@@ -727,9 +1011,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public OpenDoorMacroEventArgs( Mobile mobile )
+		public OpenDoorMacroEventArgs(Mobile mobile)
 		{
 			m_Mobile = mobile;
 		}
@@ -745,24 +1029,24 @@ namespace Server
 		private bool m_Handled;
 		private bool m_Blocked;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
-		public string Speech{ get{ return m_Speech; } set{ m_Speech = value; } }
-		public MessageType Type{ get{ return m_Type; } }
-		public int Hue{ get{ return m_Hue; } }
-		public int[] Keywords{ get{ return m_Keywords; } }
-		public bool Handled{ get{ return m_Handled; } set{ m_Handled = value; } }
-		public bool Blocked{ get{ return m_Blocked; } set{ m_Blocked = value; } }
+		public Mobile Mobile { get { return m_Mobile; } }
+		public string Speech { get { return m_Speech; } set { m_Speech = value; } }
+		public MessageType Type { get { return m_Type; } }
+		public int Hue { get { return m_Hue; } }
+		public int[] Keywords { get { return m_Keywords; } }
+		public bool Handled { get { return m_Handled; } set { m_Handled = value; } }
+		public bool Blocked { get { return m_Blocked; } set { m_Blocked = value; } }
 
-		public bool HasKeyword( int keyword )
+		public bool HasKeyword(int keyword)
 		{
-			for ( int i = 0; i < m_Keywords.Length; ++i )
-				if ( m_Keywords[i] == keyword )
+			for (int i = 0; i < m_Keywords.Length; ++i)
+				if (m_Keywords[i] == keyword)
 					return true;
 
 			return false;
 		}
 
-		public SpeechEventArgs( Mobile mobile, string speech, MessageType type, int hue, int[] keywords )
+		public SpeechEventArgs(Mobile mobile, string speech, MessageType type, int hue, int[] keywords)
 		{
 			m_Mobile = mobile;
 			m_Speech = speech;
@@ -776,9 +1060,9 @@ namespace Server
 	{
 		private Mobile m_Mobile;
 
-		public Mobile Mobile{ get{ return m_Mobile; } }
+		public Mobile Mobile { get { return m_Mobile; } }
 
-		public LoginEventArgs( Mobile mobile )
+		public LoginEventArgs(Mobile mobile)
 		{
 			m_Mobile = mobile;
 		}
@@ -788,30 +1072,30 @@ namespace Server
 	{
 		private bool m_Msg;
 
-		public bool Message{ get{ return m_Msg; } }
+		public bool Message { get { return m_Msg; } }
 
-		public WorldSaveEventArgs( bool msg )
+		public WorldSaveEventArgs(bool msg)
 		{
 			m_Msg = msg;
 		}
 	}
 
-	public class FastWalkEventArgs : EventArgs
+	public class FastWalkEventArgs
 	{
 		private NetState m_State;
 		private bool m_Blocked;
 
-		public FastWalkEventArgs( NetState state )
+		public FastWalkEventArgs(NetState state)
 		{
 			m_State = state;
 			m_Blocked = false;
 		}
 
-		public NetState NetState{ get{ return m_State; } }
-		public bool Blocked{ get{ return m_Blocked; } set{ m_Blocked = value; } }
+		public NetState NetState { get { return m_State; } }
+		public bool Blocked { get { return m_Blocked; } set { m_Blocked = value; } }
 	}
 
-	public static class EventSink
+	public class EventSink
 	{
 		public static event CharacterCreatedEventHandler CharacterCreated;
 		public static event OpenDoorMacroEventHandler OpenDoorMacroUsed;
@@ -827,7 +1111,6 @@ namespace Server
 		public static event StunRequestEventHandler StunRequest;
 		public static event OpenSpellbookRequestEventHandler OpenSpellbookRequest;
 		public static event CastSpellRequestEventHandler CastSpellRequest;
-		public static event BandageTargetRequestEventHandler BandageTargetRequest;
 		public static event AnimateRequestEventHandler AnimateRequest;
 		public static event LogoutEventHandler Logout;
 		public static event SocketConnectEventHandler SocketConnect;
@@ -856,315 +1139,328 @@ namespace Server
 		public static event GuildGumpRequestHandler GuildGumpRequest;
 		public static event QuestGumpRequestHandler QuestGumpRequest;
 		public static event ClientVersionReceivedHandler ClientVersionReceived;
-		
-		/* The following is a .NET 2.0 "Generic EventHandler" implementation.
-		 * It is a breaking change; we would have to refactor all event handlers.
-		 * This style does not appear to be in widespread use.
-		 * We could also look into .NET 4.0 Action<T>/Func<T> implementations.
-		 */
 
-		/*
-		public static event EventHandler<CharacterCreatedEventArgs> CharacterCreated;
-		public static event EventHandler<OpenDoorMacroEventArgs> OpenDoorMacroUsed;
-		public static event EventHandler<SpeechEventArgs> Speech;
-		public static event EventHandler<LoginEventArgs> Login;
-		public static event EventHandler<ServerListEventArgs> ServerList;
-		public static event EventHandler<MovementEventArgs> Movement;
-		public static event EventHandler<HungerChangedEventArgs> HungerChanged;
-		public static event EventHandler<CrashedEventArgs> Crashed;
-		public static event EventHandler<ShutdownEventArgs> Shutdown;
-		public static event EventHandler<HelpRequestEventArgs> HelpRequest;
-		public static event EventHandler<DisarmRequestEventArgs> DisarmRequest;
-		public static event EventHandler<StunRequestEventArgs> StunRequest;
-		public static event EventHandler<OpenSpellbookRequestEventArgs> OpenSpellbookRequest;
-		public static event EventHandler<CastSpellRequestEventArgs> CastSpellRequest;
-		public static event EventHandler<BandageTargetRequestEventArgs> BandageTargetRequest;
-		public static event EventHandler<AnimateRequestEventArgs> AnimateRequest;
-		public static event EventHandler<LogoutEventArgs> Logout;
-		public static event EventHandler<SocketConnectEventArgs> SocketConnect;
-		public static event EventHandler<ConnectedEventArgs> Connected;
-		public static event EventHandler<DisconnectedEventArgs> Disconnected;
-		public static event EventHandler<RenameRequestEventArgs> RenameRequest;
-		public static event EventHandler<PlayerDeathEventArgs> PlayerDeath;
-		public static event EventHandler<VirtueGumpRequestEventArgs> VirtueGumpRequest;
-		public static event EventHandler<VirtueItemRequestEventArgs> VirtueItemRequest;
-		public static event EventHandler<VirtueMacroRequestEventArgs> VirtueMacroRequest;
-		public static event EventHandler<ChatRequestEventArgs> ChatRequest;
-		public static event EventHandler<AccountLoginEventArgs> AccountLogin;
-		public static event EventHandler<PaperdollRequestEventArgs> PaperdollRequest;
-		public static event EventHandler<ProfileRequestEventArgs> ProfileRequest;
-		public static event EventHandler<ChangeProfileRequestEventArgs> ChangeProfileRequest;
-		public static event EventHandler<AggressiveActionEventArgs> AggressiveAction;
-		public static event EventHandler<CommandEventArgs> Command;
-		public static event EventHandler<GameLoginEventArgs> GameLogin;
-		public static event EventHandler<DeleteRequestEventArgs> DeleteRequest;
-		public static event EventHandler<EventArgs> WorldLoad;
-		public static event EventHandler<WorldSaveEventArgs> WorldSave;
-		public static event EventHandler<SetAbilityEventArgs> SetAbility;
-		public static event EventHandler<FastWalkEventArgs> FastWalk;
-		public static event EventHandler<CreateGuildEventArgs> CreateGuild;
-		public static event EventHandler<EventArgs> ServerStarted;
-		public static event EventHandler<GuildGumpRequestArgs> GuildGumpRequest;
-		public static event EventHandler<QuestGumpRequestArgs> QuestGumpRequest;
-		public static event EventHandler<ClientVersionReceivedArgs> ClientVersionReceived;
-		*/
+		#region KR
+		public static event TargetedSpellEventHandler TargetedSpellCast;
+		public static event TargetedSkillEventHandler TargetedSkillUse;
+		public static event TargetedItemUseEventHandler TargetedItemUse;
+		public static event EquipMacroEventHandler EquipMacro;
+		public static event UnequipMacroEventHandler UnequipMacro;
+		public static event BugReportEventHandler BugReport;
+		public static event HouseGumpResponseEventHandler HouseGumpResponse;
+		public static event ReportUseKRHotbarIconEventHandler ReportUseKRHotbarIcon;
+		public static event RemoveHighlightKRElementEventHandler RemoveHighlightKRElement;
+		public static event TargetByResourceMacroEventHandler TargetByResourceMacro;
 
-		public static void InvokeClientVersionReceived( ClientVersionReceivedArgs e )
+		public static void InvokeTargetByResourceMacro(TargetByResourceMacroEventArgs e)
 		{
-			if( ClientVersionReceived != null )
-				ClientVersionReceived( e );
+			if (TargetByResourceMacro != null)
+				TargetByResourceMacro(e);
+		}
+
+		public static void InvokeReportUseKRHotbarIcon(ReportUseKRHotbarIconEventArgs e)
+		{
+			if (ReportUseKRHotbarIcon != null)
+				ReportUseKRHotbarIcon(e);
+		}
+
+		public static void InvokeRemoveHighlightKRElement(RemoveHighlightKRElementEventArgs e)
+		{
+			if (RemoveHighlightKRElement != null)
+				RemoveHighlightKRElement(e);
+		}
+		public static void InvokeHouseGumpResponse(HouseGumpResponseEventArgs e)
+		{
+			if (HouseGumpResponse != null)
+				HouseGumpResponse(e);
+		}
+		public static void InvokeBugReport(BugReportEventArgs e)
+		{
+			if (BugReport != null)
+				BugReport(e);
+		}
+		public static void InvokeEquipMacro(EquipMacroEventArgs e)
+		{
+			if (EquipMacro != null)
+				EquipMacro(e);
+		}
+		public static void InvokeUnequipMacro(UnequipMacroEventArgs e)
+		{
+			if (UnequipMacro != null)
+				UnequipMacro(e);
+		}
+
+		public static void InvokeTargetedSpellCast(TargetedSpellEventArgs e)
+		{
+			if (TargetedSpellCast != null)
+				TargetedSpellCast(e);
+		}
+
+		public static void InvokeTargetedSkillUse(TargetedSkillEventArgs e)
+		{
+			if (TargetedSkillUse != null)
+				TargetedSkillUse(e);
+		}
+
+		public static void InvokeTargetedItemUse(TargetedItemUseEventArgs e)
+		{
+			if (TargetedItemUse != null)
+				TargetedItemUse(e);
+		}
+		#endregion KR
+
+		public static void InvokeClientVersionReceived(ClientVersionReceivedArgs e)
+		{
+			if (ClientVersionReceived != null)
+				ClientVersionReceived(e);
 		}
 
 		public static void InvokeServerStarted()
 		{
-			if ( ServerStarted != null )
+			if (ServerStarted != null)
 				ServerStarted();
 		}
 
-		public static void InvokeCreateGuild( CreateGuildEventArgs e )
+		public static BaseGuild InvokeCreateGuild(CreateGuildEventArgs e)
 		{
-			if ( CreateGuild != null )
-				CreateGuild( e );
+			if (CreateGuild != null)
+				return CreateGuild(e);
+			else
+				return null;
 		}
 
-		public static void InvokeSetAbility( SetAbilityEventArgs e )
+		public static void InvokeSetAbility(SetAbilityEventArgs e)
 		{
-			if ( SetAbility != null )
-				SetAbility( e );
+			if (SetAbility != null)
+				SetAbility(e);
 		}
 
-		public static void InvokeGuildGumpRequest( GuildGumpRequestArgs e )
+		public static void InvokeGuildGumpRequest(GuildGumpRequestArgs e)
 		{
-			if( GuildGumpRequest != null )
-				GuildGumpRequest( e );
+			if (GuildGumpRequest != null)
+				GuildGumpRequest(e);
 		}
 
-		public static void InvokeQuestGumpRequest( QuestGumpRequestArgs e )
+		public static void InvokeQuestGumpRequest(QuestGumpRequestArgs e)
 		{
-			if( QuestGumpRequest != null )
-				QuestGumpRequest( e );
+			if (QuestGumpRequest != null)
+				QuestGumpRequest(e);
 		}
 
-		public static void InvokeFastWalk( FastWalkEventArgs e )
+		public static void InvokeFastWalk(FastWalkEventArgs e)
 		{
-			if ( FastWalk != null )
-				FastWalk( e );
+			if (FastWalk != null)
+				FastWalk(e);
 		}
 
-		public static void InvokeDeleteRequest( DeleteRequestEventArgs e )
+		public static void InvokeDeleteRequest(DeleteRequestEventArgs e)
 		{
-			if ( DeleteRequest != null )
-				DeleteRequest( e );
+			if (DeleteRequest != null)
+				DeleteRequest(e);
 		}
 
-		public static void InvokeGameLogin( GameLoginEventArgs e )
+		public static void InvokeGameLogin(GameLoginEventArgs e)
 		{
-			if ( GameLogin != null )
-				GameLogin( e );
+			if (GameLogin != null)
+				GameLogin(e);
 		}
 
-		public static void InvokeCommand( CommandEventArgs e )
+		public static void InvokeCommand(CommandEventArgs e)
 		{
-			if ( Command != null )
-				Command( e );
+			if (Command != null)
+				Command(e);
 		}
 
-		public static void InvokeAggressiveAction( AggressiveActionEventArgs e )
+		public static void InvokeAggressiveAction(AggressiveActionEventArgs e)
 		{
-			if ( AggressiveAction != null )
-				AggressiveAction( e );
+			if (AggressiveAction != null)
+				AggressiveAction(e);
 		}
 
-		public static void InvokeProfileRequest( ProfileRequestEventArgs e )
+		public static void InvokeProfileRequest(ProfileRequestEventArgs e)
 		{
-			if ( ProfileRequest != null )
-				ProfileRequest( e );
+			if (ProfileRequest != null)
+				ProfileRequest(e);
 		}
 
-		public static void InvokeChangeProfileRequest( ChangeProfileRequestEventArgs e )
+		public static void InvokeChangeProfileRequest(ChangeProfileRequestEventArgs e)
 		{
-			if ( ChangeProfileRequest != null )
-				ChangeProfileRequest( e );
+			if (ChangeProfileRequest != null)
+				ChangeProfileRequest(e);
 		}
 
-		public static void InvokePaperdollRequest( PaperdollRequestEventArgs e )
+		public static void InvokePaperdollRequest(PaperdollRequestEventArgs e)
 		{
-			if ( PaperdollRequest != null )
-				PaperdollRequest( e );
+			if (PaperdollRequest != null)
+				PaperdollRequest(e);
 		}
 
-		public static void InvokeAccountLogin( AccountLoginEventArgs e )
+		public static void InvokeAccountLogin(AccountLoginEventArgs e)
 		{
-			if ( AccountLogin != null )
-				AccountLogin( e );
+			if (AccountLogin != null)
+				AccountLogin(e);
 		}
 
-		public static void InvokeChatRequest( ChatRequestEventArgs e )
+				public static void InvokeChatRequest( ChatRequestEventArgs e )
+				{
+					if ( ChatRequest != null )
+						ChatRequest( e );
+				}
+
+		public static void InvokeVirtueItemRequest(VirtueItemRequestEventArgs e)
 		{
-			if ( ChatRequest != null )
-				ChatRequest( e );
+			if (VirtueItemRequest != null)
+				VirtueItemRequest(e);
 		}
 
-		public static void InvokeVirtueItemRequest( VirtueItemRequestEventArgs e )
+		public static void InvokeVirtueGumpRequest(VirtueGumpRequestEventArgs e)
 		{
-			if ( VirtueItemRequest != null )
-				VirtueItemRequest( e );
+			if (VirtueGumpRequest != null)
+				VirtueGumpRequest(e);
 		}
 
-		public static void InvokeVirtueGumpRequest( VirtueGumpRequestEventArgs e )
+		public static void InvokeVirtueMacroRequest(VirtueMacroRequestEventArgs e)
 		{
-			if ( VirtueGumpRequest != null )
-				VirtueGumpRequest( e );
+			if (VirtueMacroRequest != null)
+				VirtueMacroRequest(e);
 		}
 
-		public static void InvokeVirtueMacroRequest( VirtueMacroRequestEventArgs e )
+		public static void InvokePlayerDeath(PlayerDeathEventArgs e)
 		{
-			if ( VirtueMacroRequest != null )
-				VirtueMacroRequest( e );
+			if (PlayerDeath != null)
+				PlayerDeath(e);
 		}
 
-		public static void InvokePlayerDeath( PlayerDeathEventArgs e )
+		public static void InvokeRenameRequest(RenameRequestEventArgs e)
 		{
-			if ( PlayerDeath != null )
-				PlayerDeath( e );
+			if (RenameRequest != null)
+				RenameRequest(e);
 		}
 
-		public static void InvokeRenameRequest( RenameRequestEventArgs e )
+		public static void InvokeLogout(LogoutEventArgs e)
 		{
-			if ( RenameRequest != null )
-				RenameRequest( e );
+			if (Logout != null)
+				Logout(e);
 		}
 
-		public static void InvokeLogout( LogoutEventArgs e )
+		public static void InvokeSocketConnect(SocketConnectEventArgs e)
 		{
-			if ( Logout != null )
-				Logout( e );
+			if (SocketConnect != null)
+				SocketConnect(e);
 		}
 
-		public static void InvokeSocketConnect( SocketConnectEventArgs e )
+		public static void InvokeConnected(ConnectedEventArgs e)
 		{
-			if ( SocketConnect != null )
-				SocketConnect( e );
+			if (Connected != null)
+				Connected(e);
 		}
 
-		public static void InvokeConnected( ConnectedEventArgs e )
+		public static void InvokeDisconnected(DisconnectedEventArgs e)
 		{
-			if ( Connected != null )
-				Connected( e );
+			if (Disconnected != null)
+				Disconnected(e);
 		}
 
-		public static void InvokeDisconnected( DisconnectedEventArgs e )
+		public static void InvokeAnimateRequest(AnimateRequestEventArgs e)
 		{
-			if ( Disconnected != null )
-				Disconnected( e );
+			if (AnimateRequest != null)
+				AnimateRequest(e);
 		}
 
-		public static void InvokeAnimateRequest( AnimateRequestEventArgs e )
+		public static void InvokeCastSpellRequest(CastSpellRequestEventArgs e)
 		{
-			if ( AnimateRequest != null )
-				AnimateRequest( e );
+			if (CastSpellRequest != null)
+				CastSpellRequest(e);
 		}
 
-		public static void InvokeCastSpellRequest( CastSpellRequestEventArgs e )
+		public static void InvokeOpenSpellbookRequest(OpenSpellbookRequestEventArgs e)
 		{
-			if ( CastSpellRequest != null )
-				CastSpellRequest( e );
+			if (OpenSpellbookRequest != null)
+				OpenSpellbookRequest(e);
 		}
 
-		public static void InvokeBandageTargetRequest( BandageTargetRequestEventArgs e )
+		public static void InvokeDisarmRequest(DisarmRequestEventArgs e)
 		{
-			if ( BandageTargetRequest != null )
-				BandageTargetRequest( e );
+			if (DisarmRequest != null)
+				DisarmRequest(e);
 		}
 
-		public static void InvokeOpenSpellbookRequest( OpenSpellbookRequestEventArgs e )
+		public static void InvokeStunRequest(StunRequestEventArgs e)
 		{
-			if ( OpenSpellbookRequest != null )
-				OpenSpellbookRequest( e );
+			if (StunRequest != null)
+				StunRequest(e);
 		}
 
-		public static void InvokeDisarmRequest( DisarmRequestEventArgs e )
+		public static void InvokeHelpRequest(HelpRequestEventArgs e)
 		{
-			if ( DisarmRequest != null )
-				DisarmRequest( e );
+			if (HelpRequest != null)
+				HelpRequest(e);
 		}
 
-		public static void InvokeStunRequest( StunRequestEventArgs e )
+		public static void InvokeShutdown(ShutdownEventArgs e)
 		{
-			if ( StunRequest != null )
-				StunRequest( e );
+			if (Shutdown != null)
+				Shutdown(e);
 		}
 
-		public static void InvokeHelpRequest( HelpRequestEventArgs e )
+		public static void InvokeCrashed(CrashedEventArgs e)
 		{
-			if ( HelpRequest != null )
-				HelpRequest( e );
+			if (Crashed != null)
+				Crashed(e);
 		}
 
-		public static void InvokeShutdown( ShutdownEventArgs e )
+		public static void InvokeHungerChanged(HungerChangedEventArgs e)
 		{
-			if ( Shutdown != null )
-				Shutdown( e );
+			if (HungerChanged != null)
+				HungerChanged(e);
 		}
 
-		public static void InvokeCrashed( CrashedEventArgs e )
+		public static void InvokeMovement(MovementEventArgs e)
 		{
-			if ( Crashed != null )
-				Crashed( e );
+			if (Movement != null)
+				Movement(e);
 		}
 
-		public static void InvokeHungerChanged( HungerChangedEventArgs e )
+		public static void InvokeServerList(ServerListEventArgs e)
 		{
-			if ( HungerChanged != null )
-				HungerChanged( e );
+			if (ServerList != null)
+				ServerList(e);
 		}
 
-		public static void InvokeMovement( MovementEventArgs e )
+		public static void InvokeLogin(LoginEventArgs e)
 		{
-			if ( Movement != null )
-				Movement( e );
+			if (Login != null)
+				Login(e);
 		}
 
-		public static void InvokeServerList( ServerListEventArgs e )
+		public static void InvokeSpeech(SpeechEventArgs e)
 		{
-			if ( ServerList != null )
-				ServerList( e );
+			if (Speech != null)
+				Speech(e);
 		}
 
-		public static void InvokeLogin( LoginEventArgs e )
+		public static void InvokeCharacterCreated(CharacterCreatedEventArgs e)
 		{
-			if ( Login != null )
-				Login( e );
+			if (CharacterCreated != null)
+				CharacterCreated(e);
 		}
 
-		public static void InvokeSpeech( SpeechEventArgs e )
+		public static void InvokeOpenDoorMacroUsed(OpenDoorMacroEventArgs e)
 		{
-			if ( Speech != null )
-				Speech( e );
-		}
-
-		public static void InvokeCharacterCreated( CharacterCreatedEventArgs e )
-		{
-			if ( CharacterCreated != null )
-				CharacterCreated( e );
-		}
-
-		public static void InvokeOpenDoorMacroUsed( OpenDoorMacroEventArgs e )
-		{
-			if ( OpenDoorMacroUsed != null )
-				OpenDoorMacroUsed( e );
+			if (OpenDoorMacroUsed != null)
+				OpenDoorMacroUsed(e);
 		}
 
 		public static void InvokeWorldLoad()
 		{
-			if ( WorldLoad != null )
+			if (WorldLoad != null)
 				WorldLoad();
 		}
 
-		public static void InvokeWorldSave( WorldSaveEventArgs e )
+		public static void InvokeWorldSave(WorldSaveEventArgs e)
 		{
-			if ( WorldSave != null )
-				WorldSave( e );
+			if (WorldSave != null)
+				WorldSave(e);
 		}
 
 		public static void Reset()
@@ -1183,7 +1479,6 @@ namespace Server
 			StunRequest = null;
 			OpenSpellbookRequest = null;
 			CastSpellRequest = null;
-			BandageTargetRequest = null;
 			AnimateRequest = null;
 			Logout = null;
 			SocketConnect = null;

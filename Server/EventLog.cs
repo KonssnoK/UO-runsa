@@ -24,7 +24,7 @@ using DiagELog = System.Diagnostics.EventLog;
 
 namespace Server
 {
-	public static class EventLog
+	public class EventLog
 	{
 		static EventLog()
 		{

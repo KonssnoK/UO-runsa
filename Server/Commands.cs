@@ -183,7 +183,7 @@ namespace Server.Commands
 		}
 	}
 
-	public static class CommandSystem
+	public class CommandSystem
 	{
 		private static string m_Prefix = "[";
 

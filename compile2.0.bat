@@ -1,0 +1,1 @@
+%systemroot%\Microsoft.NET\Framework\v2.0.50727\csc /t:exe /o+ /debug- /checked- /r:Server\Ultima.dll /unsafe+ /out:Server.exe /win32icon:Server\runuo.ico /recurse:Server\*.cs

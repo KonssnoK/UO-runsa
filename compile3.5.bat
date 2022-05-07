@@ -1,0 +1,1 @@
+%systemroot%\Microsoft.NET\Framework\v3.5\csc /t:exe /o+ /debug- /checked- /r:Server\Ultima.dll /R:System.DirectoryServices.Protocols.dll /unsafe+ /out:Server.exe /win32icon:Server\runuo.ico /recurse:Server\*.cs

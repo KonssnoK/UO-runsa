@@ -160,7 +160,7 @@ namespace Server
 	}
 
 	[Flags]
-	public enum TileFlag : long
+	public enum TileFlag
 	{
 		None			= 0x00000000,
 		Background		= 0x00000001,
@@ -194,10 +194,10 @@ namespace Server
 		Roof			= 0x10000000,
 		Door			= 0x20000000,
 		StairBack		= 0x40000000,
-		StairRight		= 0x80000000
+		StairRight		= unchecked( (int)0x80000000 )
 	}
 
-	public static class TileData
+	public class TileData
 	{
 		private static LandData[] m_LandData;
 		private static ItemData[] m_ItemData;
@@ -216,17 +216,6 @@ namespace Server
 			{
 				return m_ItemData;
 			}
-		}
-
-		private static int m_MaxLandValue;
-		private static int m_MaxItemValue;
-
-		public static int MaxLandValue {
-			get { return m_MaxLandValue; }
-		}
-
-		public static int MaxItemValue {
-			get { return m_MaxItemValue; }
 		}
 
 		private static byte[] m_StringBuffer = new byte[20];
@@ -252,112 +241,48 @@ namespace Server
 				{
 					BinaryReader bin = new BinaryReader( fs );
 
-					if ( fs.Length == 3188736 ) { // 7.0.9.0
-						m_LandData = new LandData[0x4000];
+					m_LandData = new LandData[0x4000];
 
-						for ( int i = 0; i < 0x4000; ++i )
+					for ( int i = 0; i < 0x4000; ++i)
+					{
+						if ( (i & 0x1F) == 0 )
 						{
-							if ( i == 1 || ( i > 0 && (i & 0x1F) == 0 ) )
-							{
-								bin.ReadInt32(); // header
-							}
-
-							TileFlag flags = (TileFlag)bin.ReadInt64();
-							bin.ReadInt16(); // skip 2 bytes -- textureID
-
-							m_LandData[i] = new LandData( ReadNameString( bin ), flags );
+							bin.ReadInt32(); // header
 						}
 
-						m_ItemData = new ItemData[0x10000];
+						TileFlag flags = (TileFlag)bin.ReadInt32();
+						bin.ReadInt16(); // skip 2 bytes -- textureID
 
-						for ( int i = 0; i < 0x10000; ++i )
+						m_LandData[i] = new LandData( ReadNameString( bin ), flags );
+					}
+
+					#region SA
+						m_ItemData = new ItemData[0x8000];
+					#endregion
+
+					#region SA
+						for (int i = 0; i < 0x8000; ++i)
+					#endregion
+					{
+						if ( (i & 0x1F) == 0 )
 						{
-							if ( (i & 0x1F) == 0 )
-							{
-								bin.ReadInt32(); // header
-							}
-
-							TileFlag flags = (TileFlag)bin.ReadInt64();
-							int weight = bin.ReadByte();
-							int quality = bin.ReadByte();
-							bin.ReadInt16();
-							bin.ReadByte();
-							int quantity = bin.ReadByte();
-							bin.ReadInt32();
-							bin.ReadByte();
-							int value = bin.ReadByte();
-							int height = bin.ReadByte();
-
-							m_ItemData[i] = new ItemData( ReadNameString( bin ), flags, weight, quality, quantity, value, height );
-						}
-					} else {
-						m_LandData = new LandData[0x4000];
-
-						for ( int i = 0; i < 0x4000; ++i )
-						{
-							if ( (i & 0x1F) == 0 )
-							{
-								bin.ReadInt32(); // header
-							}
-
-							TileFlag flags = (TileFlag)bin.ReadInt32();
-							bin.ReadInt16(); // skip 2 bytes -- textureID
-
-							m_LandData[i] = new LandData( ReadNameString( bin ), flags );
+							bin.ReadInt32(); // header
 						}
 
-						if ( fs.Length == 1644544 ) { // 7.0.0.0
-							m_ItemData = new ItemData[0x8000];
+						TileFlag flags = (TileFlag)bin.ReadInt32();
+						int weight = bin.ReadByte();
+						int quality = bin.ReadByte();
+						bin.ReadInt16();
+						bin.ReadByte();
+						int quantity = bin.ReadByte();
+						bin.ReadInt32();
+						bin.ReadByte();
+						int value = bin.ReadByte();
+						int height = bin.ReadByte();
 
-							for ( int i = 0; i < 0x8000; ++i )
-							{
-								if ( (i & 0x1F) == 0 )
-								{
-									bin.ReadInt32(); // header
-								}
-
-								TileFlag flags = (TileFlag)bin.ReadInt32();
-								int weight = bin.ReadByte();
-								int quality = bin.ReadByte();
-								bin.ReadInt16();
-								bin.ReadByte();
-								int quantity = bin.ReadByte();
-								bin.ReadInt32();
-								bin.ReadByte();
-								int value = bin.ReadByte();
-								int height = bin.ReadByte();
-
-								m_ItemData[i] = new ItemData( ReadNameString( bin ), flags, weight, quality, quantity, value, height );
-							}
-						} else {
-							m_ItemData = new ItemData[0x4000];
-
-							for ( int i = 0; i < 0x4000; ++i )
-							{
-								if ( (i & 0x1F) == 0 )
-								{
-									bin.ReadInt32(); // header
-								}
-
-								TileFlag flags = (TileFlag)bin.ReadInt32();
-								int weight = bin.ReadByte();
-								int quality = bin.ReadByte();
-								bin.ReadInt16();
-								bin.ReadByte();
-								int quantity = bin.ReadByte();
-								bin.ReadInt32();
-								bin.ReadByte();
-								int value = bin.ReadByte();
-								int height = bin.ReadByte();
-
-								m_ItemData[i] = new ItemData( ReadNameString( bin ), flags, weight, quality, quantity, value, height );
-							}
-						}
+						m_ItemData[i] = new ItemData( ReadNameString( bin ), flags, weight, quality, quantity, value, height );
 					}
 				}
-
-				m_MaxLandValue = m_LandData.Length - 1;
-				m_MaxItemValue = m_ItemData.Length - 1;
 			}
 			else
 			{

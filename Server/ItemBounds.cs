@@ -23,7 +23,7 @@ using System.IO;
 
 namespace Server
 {
-	public static class ItemBounds
+	public class ItemBounds
 	{
 		private static Rectangle2D[] m_Bounds;
 
@@ -37,17 +37,16 @@ namespace Server
 
 		static ItemBounds()
 		{
-			m_Bounds = new Rectangle2D[TileData.ItemTable.Length];
-
-			if ( File.Exists( "Data/Binary/Bounds.bin" ) )
+			if (File.Exists("Data/Binary/Bounds_latest.bin"))
 			{
-				using ( FileStream fs = new FileStream( "Data/Binary/Bounds.bin", FileMode.Open, FileAccess.Read, FileShare.Read ) )
+				using (FileStream fs = new FileStream("Data/Binary/Bounds_latest.bin", FileMode.Open, FileAccess.Read, FileShare.Read))
 				{
 					BinaryReader bin = new BinaryReader( fs );
 
-					int count = Math.Min( m_Bounds.Length, (int)( fs.Length / 8 ) );
+					#region SA
+					m_Bounds = new Rectangle2D[0x8000];
 
-					for ( int i = 0; i < count; ++i )
+					for (int i = 0; i < 0x8000; ++i)
 					{
 						int xMin = bin.ReadInt16();
 						int yMin = bin.ReadInt16();
@@ -56,13 +55,45 @@ namespace Server
 
 						m_Bounds[i].Set( xMin, yMin, (xMax - xMin) + 1, (yMax - yMin) + 1 );
 					}
+					#endregion
 
 					bin.Close();
 				}
 			}
 			else
 			{
-				Console.WriteLine( "Warning: Data/Binary/Bounds.bin does not exist" );
+				Console.WriteLine("Warning: Data/Binary/Bounds_latest.bin does not exist");
+
+				#region SA
+				m_Bounds = new Rectangle2D[0x8000];
+				#endregion
+
+				#region SA
+				bool useUltimaDll = false;
+
+				if (useUltimaDll)
+				{
+					m_Bounds = new Rectangle2D[0x8000];
+
+					using (FileStream fs = new FileStream("Data/Binary/Bounds_ToRename.bin", FileMode.CreateNew, FileAccess.Write, FileShare.Write))
+					{
+						using (BinaryWriter b = new BinaryWriter(fs))
+						{
+							for (int i = 0; i < 0x8000; ++i)
+							{
+								int xMin, yMin, xMax, yMax;
+								Item.Measure(Item.GetBitmap(i), out xMin, out yMin, out xMax, out yMax);
+								//m_Bounds[i].Set(xMin, yMin, (xMax - xMin) + 1, (yMax - yMin) + 1);
+
+								b.Write((ushort)xMin);
+								b.Write((ushort)yMin);
+								b.Write((ushort)xMax);
+								b.Write((ushort)yMax);
+							}
+						}
+					}
+				}
+				#endregion
 			}
 		}
 	}

@@ -54,6 +54,14 @@ namespace Server.Network
 			return m_Reader.ReadInt32();
 		}
 
+		public short ReadInt16()
+		{
+			if (m_Reader.ReadByte() != 0)
+				return 0;
+
+			return m_Reader.ReadInt16();
+		}
+
 		public Point3D ReadPoint3D()
 		{
 			if ( m_Reader.ReadByte() != 3 )

@@ -35,18 +35,18 @@ namespace Server
 		[CommandProperty( AccessLevel.GameMaster )]
 		public int Hue { get { return m_Hue; } set { m_Hue = value; } }
 
-		protected BaseHairInfo( int itemid )
+		public BaseHairInfo( int itemid )
 			: this( itemid, 0 )
 		{
 		}
 
-		protected BaseHairInfo( int itemid, int hue )
+		public BaseHairInfo( int itemid, int hue )
 		{
 			m_ItemID = itemid;
 			m_Hue = hue;
 		}
 
-		protected BaseHairInfo( GenericReader reader )
+		public BaseHairInfo( GenericReader reader )
 		{
 			int version = reader.ReadInt();
 
@@ -66,6 +66,28 @@ namespace Server
 			writer.Write( (int)0 ); //version
 			writer.Write( (int)m_ItemID );
 			writer.Write( (int)m_Hue );
+		}
+	}
+	public class FaceInfo : BaseHairInfo
+	{
+		public FaceInfo( int itemid )
+			: base( itemid, 0 )
+		{
+		}
+
+		public FaceInfo( int itemid, int hue )
+			: base( itemid, hue )
+		{
+		}
+
+		public FaceInfo( GenericReader reader )
+			: base( reader )
+		{
+		}
+
+		public static int FakeSerial( Mobile parent )
+		{
+			return (0x7FFFFFFF - 0x400 - 2 - (parent.Serial * 4));
 		}
 	}
 
@@ -157,6 +179,29 @@ namespace Server
 		}
 	}
 
+	#region KR
+	public sealed class FaceEquipUpdate : Packet
+	{
+		public FaceEquipUpdate( Mobile parent )
+			: base( 0x2E, 15 )
+		{
+			int hue = parent.Hue;
+
+			if( parent.SolidHueOverride >= 0 )
+				hue = parent.SolidHueOverride;
+
+			int faceSerial = FaceInfo.FakeSerial( parent );
+
+			m_Stream.Write( (int)faceSerial );
+			m_Stream.Write( (short)parent.FaceItemID );
+			m_Stream.Write( (byte)0 );
+            m_Stream.Write((byte)Layer.Face);
+			m_Stream.Write( (int)parent.Serial );
+			m_Stream.Write( (short)hue );
+		}
+	}
+	#endregion
+
 	public sealed class RemoveHair : Packet
 	{
 		public RemoveHair( Mobile parent )
@@ -174,4 +219,15 @@ namespace Server
 			m_Stream.Write( (int)FacialHairInfo.FakeSerial( parent ) );
 		}
 	}
+
+    #region KR
+	public sealed class RemoveFace : Packet
+	{
+		public RemoveFace( Mobile parent )
+			: base( 0x1D, 5 )
+		{
+			m_Stream.Write( (int)FaceInfo.FakeSerial( parent ) );
+		}
+	}
+	#endregion
 }

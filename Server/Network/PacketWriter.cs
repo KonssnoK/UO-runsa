@@ -76,7 +76,7 @@ namespace Server.Network
 					{
 						using ( StreamWriter op = new StreamWriter( "neterr.log" ) )
 						{
-							op.WriteLine("{0}\tInstance pool contains writer", DateTime.UtcNow);
+							op.WriteLine( "{0}\tInstance pool contains writer", DateTime.Now );
 						}
 					}
 					catch
@@ -97,7 +97,7 @@ namespace Server.Network
 		/// <summary>
 		/// Internal format buffer.
 		/// </summary>
-		private byte[] m_Buffer = new byte[4];
+		private static byte[] m_Buffer = new byte[4];
 
 		/// <summary>
 		/// Instantiates a new PacketWriter instance with the default capacity of 4 bytes.
@@ -187,6 +187,20 @@ namespace Server.Network
 
 			m_Stream.Write( m_Buffer, 0, 4 );
 		}
+
+		#region SA
+		/// <summary>
+		/// Writes a 8-byte signed integer value to the underlying stream.
+		/// </summary>
+		public void Write(long value)
+		{
+			uint k1 = (uint)(value >> 32);
+			uint k2 = (uint)(value);
+
+			Write(k1);
+			Write(k2);
+		}
+		#endregion
 
 		/// <summary>
 		/// Writes a sequence of bytes to the underlying stream

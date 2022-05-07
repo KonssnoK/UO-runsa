@@ -24,6 +24,11 @@ namespace Server.Items
 {
 	public class BaseMulti : Item
 	{
+		#region SA
+		public override bool PropertyListEnabled { get { return false; } }
+		public override bool IsSAMultiGraphic { get { return true; } }
+		#endregion
+
 		[Constructable]
 		public BaseMulti( int itemID ) : base( itemID )
 		{
@@ -75,22 +80,13 @@ namespace Server.Items
 			{
 				MultiComponentList mcl = this.Components;
 
-				if ( mcl.List.Length > 0 ) {
-					int id = mcl.List[0].m_ItemID;
-
-					if ( id < 0x4000 )
-						return 1020000 + id;
-					else
-						return 1078872 + id;
-				}
+				if ( mcl.List.Length > 0 )
+					#region SA
+					return 1020000 + (mcl.List[0].m_ItemID & 0x7FFF);
+					#endregion
 
 				return base.LabelNumber;
 			}
-		}
-
-		public virtual bool AllowsRelativeDrop
-		{
-			get { return false; }
 		}
 
 		public override int GetMaxUpdateRange()
@@ -160,7 +156,7 @@ namespace Server.Items
 		{
 			base.Serialize( writer );
 
-			writer.Write( (int) 1 ); // version
+			writer.Write( (int) 0 ); // version
 		}
 
 		public override void Deserialize( GenericReader reader )
@@ -168,12 +164,6 @@ namespace Server.Items
 			base.Deserialize( reader );
 
 			int version = reader.ReadInt();
-
-			if ( version == 0 ) {
-				if ( ItemID >= 0x4000 ) {
-					ItemID -= 0x4000;
-				}
-			}
 		}
 	}
 }

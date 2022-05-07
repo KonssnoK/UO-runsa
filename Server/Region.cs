@@ -96,8 +96,40 @@ namespace Server
 		Paws,
 		SelimsBar,
 		SerpentIsleCombat_U7,
-		ValoriaShips
+		ValoriaShips,
+		TheWanderer,
+		Castle,
+		Festival,
+		Honor,
+		Medieval,
+		BattleOnStones,
+		Docktown,
+		GargoyleQueen,
+		GenericCombat,
+		Holycity,
+		HumanLevel,
+		LoginLoop,
+		NorthernForestBattleonStones,
+		PrimevalLich,
+		QueenPalace,
+		RoyalCity,
+		SlasherVeil,
+		StygianAbyss,
+		StygianDragon,
+		Void,
+		CodexShrine
 	}
+
+
+	public interface ISpawner
+	{
+		bool UnlinkOnTaming{ get; }
+		Point3D Home{ get; }
+		int Range{ get; }
+
+		void Remove( object spawn );
+	}
+
 
 	public class Region : IComparable
 	{
@@ -127,7 +159,7 @@ namespace Server
 		private static Type m_DefaultRegionType = typeof( Region );
 		public static Type DefaultRegionType{ get{ return m_DefaultRegionType; } set{ m_DefaultRegionType = value; } }
 
-		private static TimeSpan m_StaffLogoutDelay = TimeSpan.Zero;
+		private static TimeSpan m_StaffLogoutDelay = TimeSpan.FromSeconds( 10.0 );
 		private static TimeSpan m_DefaultLogoutDelay = TimeSpan.FromMinutes( 5.0 );
 
 		public static TimeSpan StaffLogoutDelay{ get{ return m_StaffLogoutDelay; } set{ m_StaffLogoutDelay = value; } }
@@ -855,42 +887,71 @@ namespace Server
 			}
 		}
 
-
+		static string[] XmlRegions =
+		{
+			"Data/Regions/Felucca.xml",
+			"Data/Regions/Trammel.xml",
+			"Data/Regions/Ilshenar.xml",
+			"Data/Regions/Malas.xml",
+			"Data/Regions/Tokuno.xml",
+			"Data/Regions/TerMur.xml",
+		};
+		static string[] XmlDungRegions = 
+		{ 
+			"Data/Regions/DungeonZone/Felucca.xml",
+			"Data/Regions/DungeonZone/Trammel.xml" 
+		};
 		internal static void Load()
 		{
-			if ( !System.IO.File.Exists( "Data/Regions.xml" ) )
-			{
-				Console.WriteLine( "Error: Data/Regions.xml does not exist" );
-				return;
-			}
-
 			Console.Write( "Regions: Loading..." );
 
 			XmlDocument doc = new XmlDocument();
-			doc.Load( System.IO.Path.Combine( Core.BaseDirectory, "Data/Regions.xml" ) );
+			for (int i = 0; i < XmlRegions.Length; ++i)
+			{
+				ComputeLoad(XmlRegions[i], doc);
+			}
+			Console.WriteLine("done");
+			Console.Write("DRegions: Loading...");
+			// Load 5121x+ Dungeons
+			for (int i = 0; i < XmlDungRegions.Length; ++i)
+			{
+				ComputeLoad(XmlDungRegions[i], doc);
+			}
+
+			Console.WriteLine("done");
+		}
+
+		private static void ComputeLoad(string path,XmlDocument doc)
+		{
+			if (!System.IO.File.Exists(path))
+			{
+				Console.WriteLine(string.Format("Warning: {0} does not exist",path));
+				return;
+			}
+
+			doc.Load(System.IO.Path.Combine(Core.BaseDirectory, path));
 
 			XmlElement root = doc["ServerRegions"];
 
-			if ( root == null )
+			if (root == null)
 			{
-				Console.WriteLine( "Could not find root element 'ServerRegions' in Regions.xml" );
+				Console.WriteLine("Could not find root element 'ServerRegions' in " + path);
 			}
 			else
 			{
-				foreach ( XmlElement facet in root.SelectNodes( "Facet" ) )
+				foreach (XmlElement facet in root.SelectNodes("Facet"))
 				{
 					Map map = null;
-					if ( ReadMap( facet, "name", ref map ) )
+					if (ReadMap(facet, "name", ref map))
 					{
-						if ( map == Map.Internal )
-							Console.WriteLine( "Invalid internal map in a facet element" );
+						Console.Write(map.Name + "..");
+						if (map == Map.Internal)
+							Console.WriteLine("Invalid internal map in a facet element");
 						else
-							LoadRegions( facet, map, null );
+							LoadRegions(facet, map, null);
 					}
 				}
 			}
-
-			Console.WriteLine( "done" );
 		}
 
 		private static void LoadRegions( XmlElement xml, Map map, Region parent )
@@ -981,11 +1042,11 @@ namespace Server
 			}
 
 
-			MusicName music = this.DefaultMusic;
+			object oMusic = this.DefaultMusic;
 
-			ReadEnum( xml["music"], "name", ref music, false );
+			ReadEnum( xml["music"], "name", typeof( MusicName ), ref oMusic, false );
 
-			m_Music = music;
+			m_Music = (MusicName) oMusic;
 		}
 
 		protected static string GetAttribute( XmlElement xml, string attribute, bool mandatory )
@@ -1090,7 +1151,7 @@ namespace Server
 
 			try
 			{
-				value = XmlConvert.ToDateTime( s, XmlDateTimeSerializationMode.Utc );
+				value = XmlConvert.ToDateTime( s, XmlDateTimeSerializationMode.Local );
 			}
 			catch
 			{
@@ -1126,32 +1187,29 @@ namespace Server
 			return true;
 		}
 
-		public static bool ReadEnum<T>( XmlElement xml, string attribute, ref T value ) where T : struct
+		public static bool ReadEnum( XmlElement xml, string attribute, Type type, ref object value )
 		{
-			return ReadEnum( xml, attribute, ref value, true );
+			return ReadEnum( xml, attribute, type, ref value, true );
 		}
 
-		public static bool ReadEnum<T>( XmlElement xml, string attribute, ref T value, bool mandatory ) where T : struct // We can't limit the where clause to Enums only
+		public static bool ReadEnum( XmlElement xml, string attribute, Type type, ref object value, bool mandatory )
 		{
 			string s = GetAttribute( xml, attribute, mandatory );
 
 			if ( s == null )
 				return false;
 
-			Type type = typeof(T);
-
-			T tempVal;
-
-			if( type.IsEnum && Enum.TryParse( s, true, out tempVal ) )
+			try
 			{
-				value = tempVal;
-				return true;
+				value = Enum.Parse( type, s, true );
 			}
-			else
+			catch
 			{
 				Console.WriteLine( "Could not parse {0} enum attribute '{1}' in element '{2}'", type, attribute, xml.Name );
 				return false;
 			}
+
+			return true;
 		}
 
 		public static bool ReadMap( XmlElement xml, string attribute, ref Map value )

@@ -37,24 +37,18 @@ namespace Server {
 		public DualSaveStrategy() {
 		}
 
-		public override void Save( SaveMetrics metrics, bool permitBackgroundWrite ) 
-		{
-			this.PermitBackgroundWrite = permitBackgroundWrite;
-
+		public override void Save( SaveMetrics metrics ) {
 			Thread saveThread = new Thread( delegate() {
-				SaveItems(metrics);
+				SaveItems( metrics );
 			} );
 
 			saveThread.Name = "Item Save Subset";
 			saveThread.Start();
 
-			SaveMobiles(metrics);
-			SaveGuilds(metrics);
+			SaveMobiles( metrics );
+			SaveGuilds( metrics );
 
 			saveThread.Join();
-
-			if (permitBackgroundWrite && UseSequentialWriters)	//If we're permitted to write in the background, but we don't anyways, then notify.
-				World.NotifyDiskWriteComplete();
 		}
 	}
 }

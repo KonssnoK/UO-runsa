@@ -1,0 +1,176 @@
+MainVersion.Changes.Fixes
+
+v3.0.0 High Seas
+- Added HS Support
+- Changed Tiledata - Multi Reading
+- Added Packet F7
+- Added Packet F6
+- Rewritten Packet F3
+- Main changes in IEntity
+- Support for Mobiletypes.txt
+-
+
+v2.10.15
+- Added F0 F1 F2 Handling
+
+v2.9.15
+- Added packet D7.1E handling
+v2.8.15
+- All mobiles can now have Flying prop
+- Changed Region Loading
+- Updated packet 6D PlayMusic
+- Added missing musics
+v2.7.14
+- Fixed Receiving of TargetPacket 0 0 0
+v2.7.13
+- Fixed A8 packet to work correctly with "4.0.3.0" client
+v2.7.12
+- Rewritted RunUO StatMods system. Now timers will work fine, bonuses will be not addicted
+v2.7.11
+- Changed Sleep Timer, now sending effects
+v2.7.10
+- Added Packet 0x70 GraphicalEffect
+v2.6.10
+- Updated packet DE
+- Added new Multitargets System using DE packet. Each player will now have primary target and list of secondary target.
+v2.5.9
+- Fix at Light sending in SAWorlditem
+- Items with property list disabled will not send property list
+- Added RandomizeList Function
+v2.5.8
+- Fix at PropertyList sending
+v2.5.7
+- Updated clilocs to last version
+v2.5.6
+- Added F4 handling
+v2.4.6
+- Added buff/debuff flying
+- Fixed all clilocs about flying
+- Gargoyles cannot fly if hurt
+v2.4.5
+- Gargoyles cannot land if they are on hoverover tiles
+- Fix at flying, now it's not possible fly if dead.
+v2.4.4
+- Fix at Items boundings, updated all new items.
+v2.4.3
+- Added Prompt Gumps acting as OSI.
+- Server now use Packet F3 instead of 1A
+v2.3.2
+- Added Offset at items
+- Fix at Packet F3
+v2.2.2
+- Fix at new Clilocs
+v2.2.1
+- Added Flying Ability
+- Added Handling for flying request BF.32
+v2.1.1
+- Fix at Gargoyles' Hairs beards and faces
+- Added new skills : Imbuing Throwing Mysticism
+v2.0.0
+- Added basic support Gargoyle Race
+- Added support for SA expansion
+- Fixed Client Recognition
+- Fixed Version Recognition
+- Gargoyles can now open Paperdoll
+- Fixed Character creation race bug
+
+v1.11.11
+- Fix at packet B9. RunKR now supports Only clients newer than 2.59.0.1
+v1.11.10
+- Changed ContextMenu ( Flag Color )
+v1.11.9
+- Implemented Alert/TakeOff Animations
+- Fix at E2 Packet
+v1.11.8
+- Added temporary fix at height
+- Changed PropertyListEnabled
+- Changed Flags for KR Client
+- Facehue will not be sent if == 0
+- SendStatus has been Changed to SendStatusExtended
+- SendStatus has been restored to original svn
+- Changed Seeding system
+v1.11.7
+- Added KR deleteChar handling
+- Added Layer.Face
+- Added/Ordered many Regions, added some comment
+- Updated KRAnimations, following ASM
+- Fix at KRCharacterListUpdate
+v1.10.6
+- Fix at "Target By Resource" Macro
+- Fix at Character Creation flags
+- Fix at Griding
+- Fix at Dropping
+- Added some KR region
+v1.10.5
+- Fix at range for update. KR client has a shorter range than 2d.
+v1.10.4
+- Fix at Griding
+v1.10.3
+- Added "Target By Resource" Macro
+- Fix at Griding in Lift
+- Fix at Ondragdrop Griding
+- Fix at DropItem Griding
+v1.9.2
+- Fix At TargetbyResource
+- Fix at Chat System
+v1.9.1
+- Fix at Drop Item
+- Changed KRAnimation location
+v1.9
+- Added UpdateStatusMobile packet
+- Added UpdateAnimation packet
+- Rewrited Heathbar packet
+v1.8
+- Fix at waypoints
+- Fix at statinfo
+v1.7
+- added FriendListPacket
+- added ChatPacket
+v1.6
+- added Native KR expansion
+- added PetPacket
+- added Encoding + Protocols.dll
+v1.5
+Packethandlers.cs
+- fix a Dropreq6017 ( if state == null )
+v1.4se
+Gump.cs
+- Compile() commented
+Item.cs
+- SetSaveFlag() commented
+Netstate.cs
+- Socket.connected 
+- Fix che creava diversi errori di network
+ScriptCompiler.cs
+- LoadScriptedAssembly() commented
+Timer.cs
+- m_QueueCountAtSlice commented
+v1.4
+PacketHandlers.cs
+- Fix 
+Mobile.cs
+- Onrequestedanimation
+
+v1.3
+Mobile.cs 
+- Fix state.IsKRClient
+
+v1.2
+Mobile.cs
+- Healthbar hotfix
+
+v1.1
+- Hotbar fix
+
+v1.0
+-Stable Version with 80% support
+// -0.1 Log del personaggio
+// -0.2 Quickbar system
+// -0.3 Drop e visualizzazione icone
+// -0.4 Visione Gumps semplici
+// -0.5 Visione Gumps articolati
+// -0.6 House System
+// -0.7 Mono Support
+// -0.8 Faction Gumps
+// -0.9 Tutti i Packets e Gumps 
+// -1.0 Tutorial

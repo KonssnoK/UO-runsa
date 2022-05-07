@@ -1,4 +1,14 @@
-runuo
+runSA
+=====
+
+RunSA is a fork from RunUO that began in 2006 and went on till 2010, more or less.
+The main focus was to always support the newest clients, and so we did.
+
+Supported:
+- UO:Kingdom Reborn
+- UO:Stygian Abyss
+- UO:High Seas Expansion
+
 =====
 
 [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/4tjo91e4qotjtsgq?svg=true)](https://ci.appveyor.com/project/ms/runuo) [![Travis Build Status](https://travis-ci.org/runuo/runuo.svg)](https://travis-ci.org/runuo/runuo)
